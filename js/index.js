@@ -126,15 +126,6 @@ var UI = /** @class */ (function () {
             }
         });
     };
-    // updateMenu(particles:Particle[]){
-    //     let props = ["charge","mass"];
-    //     props.forEach(function(p){
-    //         let menus = document.querySelectorAll("input[data-inputid$='"+p+"']");
-    //         menus.forEach(function(m){
-    //             console.log(m);
-    //         });
-    //     });
-    // }
     UI.prototype.updateDebug = function (world, fps) {
         var d = this.debug;
         d.innerHTML = "fps:" + fps + "<br>";
@@ -213,6 +204,7 @@ var World = /** @class */ (function () {
     World.prototype.physicsStep = function () {
         this.calculatePhysics();
         this.particles.forEach(function (p) {
+            p.trail.push(JSON.parse(JSON.stringify(p.position)));
             p.velocity[0] += p.acceleration[0];
             p.velocity[1] += p.acceleration[1];
             p.position[0] += p.velocity[0];
@@ -254,6 +246,7 @@ var Particle = /** @class */ (function () {
         this.acceleration = [0, 0];
         this.color = "#ffffff";
         this.selected = false;
+        this.trail = [];
         this.charge = charge;
         this.mass = mass;
         this.position = position;
@@ -266,6 +259,14 @@ var Particle = /** @class */ (function () {
             this.color = color;
     }
     Particle.prototype.draw = function (ctx, w) {
+        var p = this;
+        this.trail.forEach(function (t) {
+            ctx.beginPath();
+            ctx.arc(t[0] * w.scale + w.drawingOffset[0], t[1] * w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.closePath();
+        });
         ctx.beginPath();
         ctx.arc(this.position[0] * w.scale + w.drawingOffset[0], this.position[1] * w.scale + w.drawingOffset[1], this.mass * w.scale, 0, 2 * Math.PI);
         ctx.fillStyle = this.color;
@@ -275,6 +276,7 @@ var Particle = /** @class */ (function () {
             ctx.lineWidth = 2;
             ctx.stroke();
         }
+        ctx.closePath();
     };
     Particle.prototype.setId = function (id) { this.id = id; };
     Particle.prototype.getId = function () { return this.id; };

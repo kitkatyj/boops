@@ -150,16 +150,6 @@ class UI {
         });
     }
 
-    // updateMenu(particles:Particle[]){
-    //     let props = ["charge","mass"];
-    //     props.forEach(function(p){
-    //         let menus = document.querySelectorAll("input[data-inputid$='"+p+"']");
-    //         menus.forEach(function(m){
-    //             console.log(m);
-    //         });
-    //     });
-    // }
-
     updateDebug(world:World,fps:number){
         let d = this.debug;
         d.innerHTML = "fps:"+fps+"<br>";
@@ -250,6 +240,8 @@ class World {
     physicsStep(){
         this.calculatePhysics();
         this.particles.forEach(function(p){
+            p.trail.push(JSON.parse(JSON.stringify(p.position)));
+
             p.velocity[0] += p.acceleration[0];
             p.velocity[1] += p.acceleration[1];
 
@@ -291,6 +283,7 @@ class Particle {
     acceleration: number[] = [0,0];
     color: string = "#ffffff";
     selected: boolean = false;
+    trail: number[][] = [];
 
     constructor(charge:number,mass:number,position:number[],color?:string,velocity?:number[],acceleration?:number[]){
         this.charge = charge;
@@ -304,6 +297,18 @@ class Particle {
     }
 
     draw(ctx:CanvasRenderingContext2D, w:World){
+        let p = this;
+        this.trail.forEach(function(t){
+            ctx.beginPath();
+            ctx.arc(
+                t[0]*w.scale + w.drawingOffset[0],
+                t[1]*w.scale + w.drawingOffset[1],
+                1, 0, 2 * Math.PI
+            );
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.closePath();
+        });
         ctx.beginPath();
         ctx.arc(
             this.position[0]*w.scale + w.drawingOffset[0], 
@@ -317,6 +322,7 @@ class Particle {
             ctx.lineWidth = 2;
             ctx.stroke();
         }
+        ctx.closePath();
     }
 
     setId(id:string){this.id = id;}
