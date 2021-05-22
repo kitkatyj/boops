@@ -8,6 +8,7 @@ class World {
     paused: boolean = true;
     arrowScale: number = 25;
     cursorPosition: number[] = [0,0];
+    dragging: boolean = false;
     shiftPress: boolean = false;
 
     constructor(){
@@ -26,10 +27,10 @@ class World {
     draw(ctx:CanvasRenderingContext2D){
         let w = this;
         this.particles.forEach(function(p){
-            let drawFromX = p.position[0]*w.scale + w.drawingOffset[0];
-            let drawFromY = p.position[1]*w.scale + w.drawingOffset[1];
+            let drawFromX = p.position[0]* w.scale + w.drawingOffset[0];
+            let drawFromY = p.position[1]* -w.scale + w.drawingOffset[1];
             let drawToX = drawFromX + p.acceleration[0] * w.scale * w.arrowScale * p.mass;
-            let drawToY = drawFromY + p.acceleration[1] * w.scale * w.arrowScale * p.mass;
+            let drawToY = drawFromY + p.acceleration[1] * -w.scale * w.arrowScale * p.mass;
             
             p.draw(ctx,w);
             drawArrow(ctx,drawFromX,drawFromY,drawToX,drawToY,5,10);
@@ -42,7 +43,11 @@ class World {
     }
 
     addParticle(p:Particle){
-        p.setId(this.particles.length.toString());
+        let id:number = this.particles.length;
+        while(this.getParticleById(id.toString())){
+            id++;
+        }
+        p.setId(id.toString());
         this.particles.push(p);
     }
 
@@ -88,6 +93,16 @@ class World {
             p.position[0] += p.velocity[0];
             p.position[1] += p.velocity[1];
         });
+    }
+
+    removeParticleById(id:string){
+        let index = this.particles.length - 1;
+        while(index >= 0){
+            if(this.particles[index].getId() == id){
+                this.particles.splice(index, 1);
+            }
+            index--;
+        }
     }
 
     resetWorld(){

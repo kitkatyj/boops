@@ -3,6 +3,7 @@ ui:UI,
 canvas: HTMLCanvasElement,
 ctx:CanvasRenderingContext2D,
 world:World,
+dragTimeout:any,
 resizeTimer:any = null;
 
 let times:number[] = [];
@@ -30,22 +31,43 @@ function init(){
     document.addEventListener("keyup",function(e){
         world.shiftPress = false;
     });
-    canvas.addEventListener("mousemove",function(e){
-        world.cursorPosition = [e.clientX,e.clientY];
+    document.addEventListener("mousemove",function(e){
+        world.cursorPosition = [
+            (e.clientX - world.drawingOffset[0]) / world.scale,
+            (e.clientY - world.drawingOffset[1]) / -world.scale
+        ];
     });
-    canvas.addEventListener("click",function(e){
+    canvas.addEventListener("mousedown",function(e){
         world.getParticles().forEach(function(p){
-            let drawFromX = p.position[0]*world.scale + world.drawingOffset[0];
-            let drawFromY = p.position[1]*world.scale + world.drawingOffset[1];
-            p.selected = (
+            let drawFromX = p.position[0]* world.scale + world.drawingOffset[0];
+            let drawFromY = p.position[1]* -world.scale + world.drawingOffset[1];
+            if(
                 // select within region if it's not already selected, if it is, deselect it.
-                (pythagoras(drawFromX - world.cursorPosition[0], drawFromY - world.cursorPosition[1]) < p.mass*world.scale && !p.selected) ||
+                (pythagoras(drawFromX - e.clientX, drawFromY - e.clientY) < p.mass* world.scale && !p.selected) ||
                 // enable multi-select
                 (p.selected && world.shiftPress)
-            );
+            ){
+                p.selected = p.mouseDown = true;
+                document.addEventListener("mousemove",particleDragged);
+            } else {
+                p.selected = false;
+            }
         });
         ui.initInfo(world);
     });
+    document.addEventListener("mouseup",function(e){
+        if(world.dragging) {
+            world.saveCurrentParticles();
+            ui.hideUI(false);
+            ui.initInfo(world);
+        }
+        world.dragging = false;
+        document.removeEventListener("mousemove",particleDragged);
+        canvas.style.cursor = "auto";
+        world.getParticles().forEach(function(p){
+            p.mouseDown = false;
+        });
+    })
 
     ui.initInfo(world);
     window.requestAnimationFrame(draw);
@@ -73,6 +95,18 @@ function draw(){
     // ui?.updateMenu(world.particles);
 
     window.requestAnimationFrame(draw);
+}
+
+function particleDragged(){
+    world.dragging = true;
+    world.calculatePhysics();
+    world.getParticles().forEach(function(p){
+        if(p.mouseDown){
+            canvas.style.cursor = "grabbing";
+            p.position[0] = world.cursorPosition[0];
+            p.position[1] = world.cursorPosition[1];
+        }
+    });
 }
 
 function getRandomColor():string{
