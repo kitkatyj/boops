@@ -1,11 +1,50 @@
-"use strict";
-var mainBody, ui, canvas, ctx, world, resizeTimer = null;
-var times = [];
-var config = {
-    fps: 0,
-    frameCounter: true
-};
-var UI = /** @class */ (function () {
+var Particle = (function () {
+    function Particle(charge, mass, position, color, velocity, acceleration) {
+        this.id = "";
+        this.charge = 0;
+        this.mass = 1;
+        this.position = [0, 0];
+        this.velocity = [0, 0];
+        this.acceleration = [0, 0];
+        this.color = "#ffffff";
+        this.selected = false;
+        this.trail = [];
+        this.charge = charge;
+        this.mass = mass;
+        this.position = position;
+        this.color = getRandomColor();
+        if (velocity)
+            this.velocity = velocity;
+        if (acceleration)
+            this.acceleration = acceleration;
+        if (color)
+            this.color = color;
+    }
+    Particle.prototype.draw = function (ctx, w) {
+        var p = this;
+        this.trail.forEach(function (t) {
+            ctx.beginPath();
+            ctx.arc(t[0] * w.scale + w.drawingOffset[0], t[1] * w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.closePath();
+        });
+        ctx.beginPath();
+        ctx.arc(this.position[0] * w.scale + w.drawingOffset[0], this.position[1] * w.scale + w.drawingOffset[1], this.mass * w.scale, 0, 2 * Math.PI);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        if (this.selected) {
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        ctx.closePath();
+    };
+    Particle.prototype.setId = function (id) { this.id = id; };
+    Particle.prototype.getId = function () { return this.id; };
+    return Particle;
+}());
+var UI = (function () {
     function UI(mainBody) {
         this.menu = document.createElement("div");
         this.particleInfo = document.createElement("div");
@@ -14,6 +53,7 @@ var UI = /** @class */ (function () {
         this.stepForwardBtn = document.createElement("a");
         this.resetBtn = document.createElement("a");
         this.debug = document.createElement("div");
+        this.addParticleBtn = document.createElement("a");
         this.menu.setAttribute("id", "menu");
         this.menu.classList.add("ui");
         this.particleInfo.setAttribute("id", "particle_info");
@@ -96,7 +136,6 @@ var UI = /** @class */ (function () {
                         var tempId = (_a = this.getAttribute("id")) === null || _a === void 0 ? void 0 : _a.split("_");
                         if (tempId) {
                             if (tempId[1] == "xPos") {
-                                // eval("world.getParticleById(tempId[0]).position[0] = this.value");
                                 world.getParticleById(tempId[0]).position[0] = parseInt(this.value);
                             }
                             else if (tempId[1] == "yPos") {
@@ -134,7 +173,7 @@ var UI = /** @class */ (function () {
     };
     return UI;
 }());
-var World = /** @class */ (function () {
+var World = (function () {
     function World() {
         this.cameraPosition = [0, 0];
         this.scale = 10;
@@ -165,7 +204,6 @@ var World = /** @class */ (function () {
             p.draw(ctx, w);
             drawArrow(ctx, drawFromX, drawFromY, drawToX, drawToY, 5, 10);
         });
-        // play physics!
         if (!w.paused) {
             this.physicsStep();
         }
@@ -236,52 +274,12 @@ var World = /** @class */ (function () {
     };
     return World;
 }());
-var Particle = /** @class */ (function () {
-    function Particle(charge, mass, position, color, velocity, acceleration) {
-        this.id = "";
-        this.charge = 0;
-        this.mass = 1;
-        this.position = [0, 0];
-        this.velocity = [0, 0];
-        this.acceleration = [0, 0];
-        this.color = "#ffffff";
-        this.selected = false;
-        this.trail = [];
-        this.charge = charge;
-        this.mass = mass;
-        this.position = position;
-        this.color = getRandomColor();
-        if (velocity)
-            this.velocity = velocity;
-        if (acceleration)
-            this.acceleration = acceleration;
-        if (color)
-            this.color = color;
-    }
-    Particle.prototype.draw = function (ctx, w) {
-        var p = this;
-        this.trail.forEach(function (t) {
-            ctx.beginPath();
-            ctx.arc(t[0] * w.scale + w.drawingOffset[0], t[1] * w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
-            ctx.fillStyle = p.color;
-            ctx.fill();
-            ctx.closePath();
-        });
-        ctx.beginPath();
-        ctx.arc(this.position[0] * w.scale + w.drawingOffset[0], this.position[1] * w.scale + w.drawingOffset[1], this.mass * w.scale, 0, 2 * Math.PI);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        if (this.selected) {
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-        ctx.closePath();
-    };
-    Particle.prototype.setId = function (id) { this.id = id; };
-    Particle.prototype.getId = function () { return this.id; };
-    return Particle;
-}());
+var mainBody, ui, canvas, ctx, world, resizeTimer = null;
+var times = [];
+var config = {
+    fps: 0,
+    frameCounter: true
+};
 function init() {
     console.log("Ready!");
     canvas = document.createElement("canvas");
@@ -305,10 +303,7 @@ function init() {
         world.getParticles().forEach(function (p) {
             var drawFromX = p.position[0] * world.scale + world.drawingOffset[0];
             var drawFromY = p.position[1] * world.scale + world.drawingOffset[1];
-            p.selected = (
-            // select within region if it's not already selected, if it is, deselect it.
-            (pythagoras(drawFromX - world.cursorPosition[0], drawFromY - world.cursorPosition[1]) < p.mass * world.scale && !p.selected) ||
-                // enable multi-select
+            p.selected = ((pythagoras(drawFromX - world.cursorPosition[0], drawFromY - world.cursorPosition[1]) < p.mass * world.scale && !p.selected) ||
                 (p.selected && world.shiftPress));
         });
         ui.initInfo(world);
@@ -329,10 +324,8 @@ function draw() {
         times.shift();
     }
     times.push(now);
-    // config.fps = times.length;
     (_a = world) === null || _a === void 0 ? void 0 : _a.draw(ctx);
     (_b = ui) === null || _b === void 0 ? void 0 : _b.updateDebug(world, times.length);
-    // ui?.updateMenu(world.particles);
     window.requestAnimationFrame(draw);
 }
 function getRandomColor() {
@@ -358,26 +351,20 @@ function paintBg(color) {
 }
 function drawArrow(ctx, fromx, fromy, tox, toy, width, headLength) {
     var angle = Math.atan2(toy - fromy, tox - fromx);
-    // This makes it so the end of the arrow head is located at tox, toy, don't ask where 1.15 comes from
     tox -= Math.cos(angle) * ((width * 1.15));
     toy -= Math.sin(angle) * ((width * 1.15));
-    //starting path of the arrow from the start square to the end square and drawing the stroke
     ctx.beginPath();
     ctx.moveTo(fromx, fromy);
     ctx.lineTo(tox, toy);
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = width;
     ctx.stroke();
-    //starting a new path from the head of the arrow to one of the sides of the point
     ctx.beginPath();
     ctx.moveTo(tox, toy);
     ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 7), toy - headLength * Math.sin(angle - Math.PI / 7));
-    //path from the side point of the arrow, to the other side point
     ctx.lineTo(tox - headLength * Math.cos(angle + Math.PI / 7), toy - headLength * Math.sin(angle + Math.PI / 7));
-    //path from the side point back to the tip of the arrow, and then again to the opposite side point
     ctx.lineTo(tox, toy);
     ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 7), toy - headLength * Math.sin(angle - Math.PI / 7));
-    //draws the paths created above
     ctx.strokeStyle = "#ffffff";
     ctx.lineCap = "round";
     ctx.lineWidth = width;
