@@ -12,9 +12,9 @@ class World {
     shiftPress: boolean = false;
 
     constructor(){
-        let defaultP1:Particle = new Particle(1,2,[-5,10]);
-        let defaultP2:Particle = new Particle(1,1,[10,-5]);
-        let defaultP3:Particle = new Particle(-1,1,[0,-10]);
+        let defaultP1:Particle = new Particle(1,2,[-15.5,0.4]);
+        let defaultP2:Particle = new Particle(1,1,[13.8,-12.5]);
+        let defaultP3:Particle = new Particle(-1,1,[-3.4,0.9]);
 
         this.addParticle(defaultP1);
         this.addParticle(defaultP2);
@@ -39,6 +39,7 @@ class World {
         // play physics!
         if(!w.paused){
             this.physicsStep();
+            ui.updateParticleInfo();
         }
     }
 

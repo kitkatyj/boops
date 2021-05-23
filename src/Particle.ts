@@ -11,6 +11,10 @@ class Particle {
     trail: number[][] = [];
     dragOffset: number[] = [0,0];
 
+    positionInputs: HTMLInputElement[];
+    velocityInputs: HTMLInputElement[];
+    accelerationInputs: HTMLInputElement[];
+
     constructor(charge:number,mass:number,position:number[],color?:string,velocity?:number[],acceleration?:number[]){
         this.charge = charge;
         this.mass = mass;

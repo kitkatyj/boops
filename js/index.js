@@ -99,6 +99,7 @@ var UI = (function () {
         this.stepForwardBtn.setAttribute("title", "Step Forward");
         this.stepForwardBtn.addEventListener("click", function (e) {
             world.physicsStep();
+            u.updateParticleInfo();
             u.resetBtn.classList.remove("disabled");
         });
         var ppBtn = this.playPauseBtn;
@@ -111,6 +112,9 @@ var UI = (function () {
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";
             this.classList.add("disabled");
+            u.stepForwardBtn.classList.remove("disabled");
+            u.updateParticleInfo();
+            u.initInfo();
         });
         this.resetBtn.classList.add("disabled");
         this.debug.setAttribute("id", "debug");
@@ -124,80 +128,164 @@ var UI = (function () {
         this.controlPanel.appendChild(this.stepForwardBtn);
         this.controlPanel.appendChild(this.resetBtn);
     }
-    UI.prototype.initInfo = function (world) {
+    UI.prototype.initInfo = function () {
         var u = this;
         u.particleInfo.innerHTML = '';
         world.getParticles().forEach(function (p, index) {
             if (p.selected) {
                 var pInfo = document.createElement("form");
                 pInfo.classList.add("p_info");
-                pInfo.innerHTML = "<p class='particle_titlebar'>"
-                    + "<span class='color-circle' style='background-color:" + p.color + "'>"
-                    + "</span><span class='particle_title'>Particle " + p.getId() + "</span>"
-                    + "<a class='btn delete_particle'>Delete</a>"
-                    + "</p><p>"
-                    + "<label for='" + p.getId() + "_charge'>Charge</label>"
-                    + "<input type='number' id='" + p.getId() + "_charge' value='" + p.charge + "'>"
-                    + "<label for='" + p.getId() + "_mass'>Mass</label>"
-                    + "<input type='number' id='" + p.getId() + "_mass' value='" + p.mass + "'>"
-                    + "</p><p>"
-                    + "<span>Position</span>"
-                    + "<input type='number' id='" + p.getId() + "_xPos' value='" + p.position[0] + "' step='.01'>"
-                    + "<label for='" + p.getId() + "_xPos'>x</label>"
-                    + "<input type='number' id='" + p.getId() + "_yPos' value='" + p.position[1] + "' step='.01'>"
-                    + "<label for='" + p.getId() + "_yPos'>y</label>"
-                    + "</p><p>"
-                    + "<span>Velocity</span>"
-                    + "<input type='number' id='" + p.getId() + "_xVel' value='" + p.velocity[0] + "' step='.01'>"
-                    + "<label for='" + p.getId() + "_xVel'>x</label>"
-                    + "<input type='number' id='" + p.getId() + "_yVel' value='" + p.velocity[1] + "' step='.01'>"
-                    + "<label for='" + p.getId() + "_yVel'>y</label>"
-                    + "</p><p>"
-                    + "<span>Acceleration</span>"
-                    + "<input type='number' id='" + p.getId() + "_xAcc' value='" + p.acceleration[0] + "' step='.01'>"
-                    + "<label for='" + p.getId() + "_xAcc'>x</label>"
-                    + "<input type='number' id='" + p.getId() + "_yAcc' value='" + p.acceleration[1] + "' step='.01'>"
-                    + "<label for='" + p.getId() + "_yAcc'>y</label>"
-                    + "</p>";
-                pInfo.getElementsByClassName("delete_particle")[0].addEventListener("click", function () {
+                var titleBar = document.createElement("p");
+                titleBar.classList.add("particle_titlebar");
+                var colorCircle = document.createElement("span");
+                colorCircle.style.backgroundColor = p.color;
+                var particleTitle = document.createElement("span");
+                particleTitle.classList.add("particle_title");
+                particleTitle.textContent = "Particle " + p.getId();
+                var deleteBtn = document.createElement("a");
+                deleteBtn.classList.add("btn");
+                deleteBtn.classList.add("delete_particle");
+                deleteBtn.textContent = "Delete";
+                deleteBtn.addEventListener("click", function () {
                     world.removeParticleById(p.getId());
                     world.calculatePhysics();
                     world.saveCurrentParticles();
-                    u.initInfo(world);
+                    u.initInfo();
                 });
+                titleBar.appendChild(colorCircle);
+                titleBar.appendChild(particleTitle);
+                titleBar.appendChild(deleteBtn);
+                var line1 = document.createElement("p");
+                var chargeLabel = document.createElement("label");
+                chargeLabel.setAttribute("for", p.getId() + "_charge");
+                chargeLabel.textContent = "Charge";
+                var chargeInput = document.createElement("input");
+                chargeLabel.setAttribute("id", p.getId() + "_charge");
+                chargeInput.type = "number";
+                chargeInput.value = p.charge.toString();
+                chargeInput.addEventListener("change", function () {
+                    p.charge = parseFloat(this.value);
+                });
+                var massLabel = document.createElement("label");
+                massLabel.setAttribute("for", p.getId() + "_mass");
+                massLabel.textContent = "Mass";
+                var massInput = document.createElement("input");
+                massLabel.setAttribute("id", p.getId() + "_mass");
+                massInput.type = "number";
+                massInput.value = p.mass.toString();
+                massInput.addEventListener("change", function () {
+                    p.mass = parseFloat(this.value);
+                });
+                line1.appendChild(chargeLabel);
+                line1.appendChild(chargeInput);
+                line1.appendChild(massLabel);
+                line1.appendChild(massInput);
+                var line2 = document.createElement("p");
+                var positionLabel = document.createElement("span");
+                positionLabel.textContent = "Position";
+                var posXInput = document.createElement("input");
+                posXInput.setAttribute("id", p.getId() + "_xPos");
+                posXInput.type = "number";
+                posXInput.value = p.position[0].toString();
+                posXInput.addEventListener("change", function () {
+                    p.position[0] = parseFloat(this.value);
+                });
+                var posXLabel = document.createElement("label");
+                posXLabel.setAttribute("for", p.getId() + "_xPos");
+                posXLabel.textContent = "x";
+                var posYInput = document.createElement("input");
+                posYInput.setAttribute("id", p.getId() + "_yPos");
+                posYInput.type = "number";
+                posYInput.value = p.position[1].toString();
+                posYInput.addEventListener("change", function () {
+                    p.position[1] = parseFloat(this.value);
+                });
+                var posYLabel = document.createElement("label");
+                posYLabel.setAttribute("for", p.getId() + "_yPos");
+                posYLabel.textContent = "y";
+                p.positionInputs = [posXInput, posYInput];
+                line2.appendChild(positionLabel);
+                line2.appendChild(posXInput);
+                line2.appendChild(posXLabel);
+                line2.appendChild(posYInput);
+                line2.appendChild(posYLabel);
+                var line3 = document.createElement("p");
+                var velocityLabel = document.createElement("span");
+                velocityLabel.textContent = "Velocity";
+                var velXInput = document.createElement("input");
+                velXInput.setAttribute("id", p.getId() + "_xVel");
+                velXInput.type = "number";
+                velXInput.value = p.velocity[0].toString();
+                velXInput.addEventListener("change", function () {
+                    p.velocity[0] = parseFloat(this.value);
+                });
+                var velXLabel = document.createElement("label");
+                velXLabel.setAttribute("for", p.getId() + "_xVel");
+                velXLabel.textContent = "x";
+                var velYInput = document.createElement("input");
+                velYInput.setAttribute("id", p.getId() + "_yVel");
+                velYInput.type = "number";
+                velYInput.value = p.velocity[1].toString();
+                velYInput.addEventListener("change", function () {
+                    p.velocity[1] = parseFloat(this.value);
+                });
+                var velYLabel = document.createElement("label");
+                velYLabel.setAttribute("for", p.getId() + "_yVel");
+                velYLabel.textContent = "y";
+                p.velocityInputs = [velXInput, velYInput];
+                line3.appendChild(velocityLabel);
+                line3.appendChild(velXInput);
+                line3.appendChild(velXLabel);
+                line3.appendChild(velYInput);
+                line3.appendChild(velYLabel);
+                var line4 = document.createElement("p");
+                var accelerationLabel = document.createElement("span");
+                accelerationLabel.textContent = "Acceleration";
+                var accXInput = document.createElement("input");
+                accXInput.setAttribute("id", p.getId() + "_xAcc");
+                accXInput.type = "number";
+                accXInput.value = p.acceleration[0].toString();
+                var accXLabel = document.createElement("label");
+                accXLabel.setAttribute("for", p.getId() + "_xAcc");
+                accXLabel.textContent = "x";
+                var accYInput = document.createElement("input");
+                accYInput.setAttribute("id", p.getId() + "_yAcc");
+                accYInput.type = "number";
+                accYInput.value = p.acceleration[1].toString();
+                var accYLabel = document.createElement("label");
+                accYLabel.setAttribute("for", p.getId() + "_yAcc");
+                accYLabel.textContent = "y";
+                p.accelerationInputs = [accXInput, accYInput];
+                line4.appendChild(accelerationLabel);
+                line4.appendChild(accXInput);
+                line4.appendChild(accXLabel);
+                line4.appendChild(accYInput);
+                line4.appendChild(accYLabel);
+                pInfo.appendChild(titleBar);
+                pInfo.appendChild(line1);
+                pInfo.appendChild(line2);
+                pInfo.appendChild(line3);
+                pInfo.appendChild(line4);
                 var inputs = pInfo.getElementsByTagName("input");
                 for (var i = 0; i < inputs.length; i++) {
-                    inputs[i].addEventListener("change", function (e) {
-                        var _a;
-                        var tempId = (_a = this.getAttribute("id")) === null || _a === void 0 ? void 0 : _a.split("_");
-                        if (tempId) {
-                            if (tempId[1] == "xPos") {
-                                world.getParticleById(tempId[0]).position[0] = parseFloat(this.value);
-                            }
-                            else if (tempId[1] == "yPos") {
-                                world.getParticleById(tempId[0]).position[1] = parseFloat(this.value);
-                            }
-                            else if (tempId[1] == "xVel") {
-                                world.getParticleById(tempId[0]).velocity[0] = parseFloat(this.value);
-                            }
-                            else if (tempId[1] == "yVel") {
-                                world.getParticleById(tempId[0]).velocity[1] = parseFloat(this.value);
-                            }
-                            else if (tempId[1] == "xAcc") {
-                                world.getParticleById(tempId[0]).acceleration[0] = parseFloat(this.value);
-                            }
-                            else if (tempId[1] == "yAcc") {
-                                world.getParticleById(tempId[0]).acceleration[1] = parseFloat(this.value);
-                            }
-                            else {
-                                eval("world.getParticleById(tempId[0])." + tempId[1] + " = " + this.value);
-                            }
-                            world.calculatePhysics();
-                            world.saveCurrentParticles();
-                        }
+                    inputs[i].addEventListener("change", function () {
+                        world.calculatePhysics();
+                        world.saveCurrentParticles();
                     });
                 }
                 u.particleInfo.appendChild(pInfo);
+            }
+        });
+    };
+    UI.prototype.updateParticleInfo = function () {
+        world.getParticles().forEach(function (p) {
+            if (p.selected) {
+                p.positionInputs[0].value = p.position[0].toString();
+                p.positionInputs[1].value = p.position[1].toString();
+                p.velocityInputs[0].value = p.velocity[0].toString();
+                p.velocityInputs[1].value = p.velocity[1].toString();
+                p.accelerationInputs[0].value = p.acceleration[0].toString();
+                p.accelerationInputs[1].value = p.acceleration[1].toString();
             }
         });
     };
@@ -229,9 +317,9 @@ var World = (function () {
         this.cursorPosition = [0, 0];
         this.dragging = false;
         this.shiftPress = false;
-        var defaultP1 = new Particle(1, 2, [-5, 10]);
-        var defaultP2 = new Particle(1, 1, [10, -5]);
-        var defaultP3 = new Particle(-1, 1, [0, -10]);
+        var defaultP1 = new Particle(1, 2, [-15.5, 0.4]);
+        var defaultP2 = new Particle(1, 1, [13.8, -12.5]);
+        var defaultP3 = new Particle(-1, 1, [-3.4, 0.9]);
         this.addParticle(defaultP1);
         this.addParticle(defaultP2);
         this.addParticle(defaultP3);
@@ -250,6 +338,7 @@ var World = (function () {
         });
         if (!w.paused) {
             this.physicsStep();
+            ui.updateParticleInfo();
         }
     };
     World.prototype.addParticle = function (p) {
@@ -374,13 +463,13 @@ function init() {
                 p.selected = false;
             }
         });
-        ui.initInfo(world);
+        ui.initInfo();
     });
     document.addEventListener("mouseup", function (e) {
         if (world.dragging) {
             world.saveCurrentParticles();
             ui.hideUI(false);
-            ui.initInfo(world);
+            ui.initInfo();
         }
         world.dragging = false;
         document.removeEventListener("mousemove", particleDragged);
@@ -389,7 +478,7 @@ function init() {
             p.mouseDown = false;
         });
     });
-    ui.initInfo(world);
+    ui.initInfo();
     window.requestAnimationFrame(draw);
     canvasSizeReset();
     window.addEventListener("resize", function (e) {
@@ -417,6 +506,12 @@ function particleDragged() {
             canvas.style.cursor = "grabbing";
             p.position[0] = world.cursorPosition[0] - p.dragOffset[0];
             p.position[1] = world.cursorPosition[1] - p.dragOffset[1];
+            p.positionInputs[0].value = p.position[0].toString();
+            p.positionInputs[1].value = p.position[1].toString();
+            p.velocityInputs[0].value = p.velocity[0].toString();
+            p.velocityInputs[1].value = p.velocity[1].toString();
+            p.accelerationInputs[0].value = p.acceleration[0].toString();
+            p.accelerationInputs[1].value = p.acceleration[1].toString();
         }
     });
 }
