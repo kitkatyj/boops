@@ -103,6 +103,9 @@ body {
     background-repeat: no-repeat;
     border-radius: 1em;
 }
+.btn.disabled {
+    display: none;
+}
 
 .btn:hover {
     background-color:rgba(255,255,255,0.2);

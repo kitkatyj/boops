@@ -49,9 +49,16 @@ class UI {
         this.playPauseBtn.setAttribute("title", "Play");
         this.playPauseBtn.classList.add("btn");
         this.playPauseBtn.addEventListener("click",function(e){
-            let status = (world.togglePlayPause()) ? "Play" : "Pause";
+            let status = "Pause";
+            if(world.togglePlayPause()){
+                status = "Play";
+                u.stepForwardBtn.classList.remove("disabled");
+            }else {
+                u.stepForwardBtn.classList.add("disabled");
+            }
             this.textContent = this.dataset.status = status;
             this.setAttribute("title", status);
+            u.resetBtn.classList.remove("disabled");
         });
 
         this.stepForwardBtn.setAttribute("id","step");
@@ -60,6 +67,7 @@ class UI {
         this.stepForwardBtn.setAttribute("title", "Step Forward");
         this.stepForwardBtn.addEventListener("click",function(e){
             world.physicsStep();
+            u.resetBtn.classList.remove("disabled");
         });
 
         let ppBtn = this.playPauseBtn
@@ -71,7 +79,9 @@ class UI {
             world.resetWorld();
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";
+            this.classList.add("disabled");
         });
+        this.resetBtn.classList.add("disabled");
         
         this.debug.setAttribute("id","debug");
 

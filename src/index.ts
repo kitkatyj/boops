@@ -43,11 +43,13 @@ function init(){
             let drawFromY = p.position[1]* -world.scale + world.drawingOffset[1];
             if(
                 // select within region if it's not already selected, if it is, deselect it.
-                (pythagoras(drawFromX - e.clientX, drawFromY - e.clientY) < p.mass* world.scale && !p.selected) ||
+                (pythagoras(drawFromX - e.clientX, drawFromY - e.clientY) < p.mass* world.scale) ||
                 // enable multi-select
                 (p.selected && world.shiftPress)
             ){
                 p.selected = p.mouseDown = true;
+                p.dragOffset[0] = world.cursorPosition[0] - p.position[0];
+                p.dragOffset[1] = world.cursorPosition[1] - p.position[1];
                 document.addEventListener("mousemove",particleDragged);
             } else {
                 p.selected = false;
@@ -103,8 +105,8 @@ function particleDragged(){
     world.getParticles().forEach(function(p){
         if(p.mouseDown){
             canvas.style.cursor = "grabbing";
-            p.position[0] = world.cursorPosition[0];
-            p.position[1] = world.cursorPosition[1];
+            p.position[0] = world.cursorPosition[0] - p.dragOffset[0];
+            p.position[1] = world.cursorPosition[1] - p.dragOffset[1];
         }
     });
 }

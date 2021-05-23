@@ -10,6 +10,7 @@ var Particle = (function () {
         this.selected = false;
         this.mouseDown = false;
         this.trail = [];
+        this.dragOffset = [0, 0];
         this.charge = charge;
         this.mass = mass;
         this.position = position;
@@ -80,9 +81,17 @@ var UI = (function () {
         this.playPauseBtn.setAttribute("title", "Play");
         this.playPauseBtn.classList.add("btn");
         this.playPauseBtn.addEventListener("click", function (e) {
-            var status = (world.togglePlayPause()) ? "Play" : "Pause";
+            var status = "Pause";
+            if (world.togglePlayPause()) {
+                status = "Play";
+                u.stepForwardBtn.classList.remove("disabled");
+            }
+            else {
+                u.stepForwardBtn.classList.add("disabled");
+            }
             this.textContent = this.dataset.status = status;
             this.setAttribute("title", status);
+            u.resetBtn.classList.remove("disabled");
         });
         this.stepForwardBtn.setAttribute("id", "step");
         this.stepForwardBtn.textContent = "Step Forward";
@@ -90,6 +99,7 @@ var UI = (function () {
         this.stepForwardBtn.setAttribute("title", "Step Forward");
         this.stepForwardBtn.addEventListener("click", function (e) {
             world.physicsStep();
+            u.resetBtn.classList.remove("disabled");
         });
         var ppBtn = this.playPauseBtn;
         this.resetBtn.setAttribute("id", "reset");
@@ -100,7 +110,9 @@ var UI = (function () {
             world.resetWorld();
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";
+            this.classList.add("disabled");
         });
+        this.resetBtn.classList.add("disabled");
         this.debug.setAttribute("id", "debug");
         mainBody.appendChild(this.mainMenu);
         this.mainMenu.appendChild(this.debug);
@@ -351,9 +363,11 @@ function init() {
         world.getParticles().forEach(function (p) {
             var drawFromX = p.position[0] * world.scale + world.drawingOffset[0];
             var drawFromY = p.position[1] * -world.scale + world.drawingOffset[1];
-            if ((pythagoras(drawFromX - e.clientX, drawFromY - e.clientY) < p.mass * world.scale && !p.selected) ||
+            if ((pythagoras(drawFromX - e.clientX, drawFromY - e.clientY) < p.mass * world.scale) ||
                 (p.selected && world.shiftPress)) {
                 p.selected = p.mouseDown = true;
+                p.dragOffset[0] = world.cursorPosition[0] - p.position[0];
+                p.dragOffset[1] = world.cursorPosition[1] - p.position[1];
                 document.addEventListener("mousemove", particleDragged);
             }
             else {
@@ -401,8 +415,8 @@ function particleDragged() {
     world.getParticles().forEach(function (p) {
         if (p.mouseDown) {
             canvas.style.cursor = "grabbing";
-            p.position[0] = world.cursorPosition[0];
-            p.position[1] = world.cursorPosition[1];
+            p.position[0] = world.cursorPosition[0] - p.dragOffset[0];
+            p.position[1] = world.cursorPosition[1] - p.dragOffset[1];
         }
     });
 }

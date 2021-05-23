@@ -9,6 +9,7 @@ class Particle {
     selected: boolean = false;
     mouseDown: boolean = false;
     trail: number[][] = [];
+    dragOffset: number[] = [0,0];
 
     constructor(charge:number,mass:number,position:number[],color?:string,velocity?:number[],acceleration?:number[]){
         this.charge = charge;
