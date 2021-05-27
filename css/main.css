@@ -33,6 +33,7 @@ h1 {
 section.items {
     padding: 1em 0;
     display:flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap:1em;
 }
@@ -70,3 +71,9 @@ a.card:hover {
 footer {
     padding:1em;
 }
+
+@media only screen and (max-height: 741px) {
+    body {
+        height:auto;
+    }
+  }
