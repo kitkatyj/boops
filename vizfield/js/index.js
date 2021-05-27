@@ -1,9 +1,9 @@
 var Arrow = (function () {
     function Arrow(THREE, originX, originY, originZ, length, color) {
-        this.headLength = 0.5;
-        this.headWidth = 0.3;
+        this.headLength = 1;
+        this.headWidth = 0.6;
         this.color = color || '#ffffff';
-        this.length = length || 1;
+        this.length = length || 2;
         this.origin = new THREE.Vector3(originX, originY, originZ);
         this.direction = new THREE.Vector3(0, 0, 0);
         this.arrowHelper = new THREE.ArrowHelper(this.direction, this.origin, this.length, this.color, this.headLength, this.headWidth);
@@ -18,17 +18,20 @@ var Arrow = (function () {
     return Arrow;
 }());
 var ArrowField = (function () {
-    function ArrowField(THREE, sizeX, sizeY, sizeZ, density) {
+    function ArrowField(THREE, sizeX, sizeY, sizeZ, densityX, densityY, densityZ) {
         this.arrows = [];
         this.kConstant = 1;
         this.maxIntensity = 0;
+        this.normalizeStrength = true;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
-        this.density = density;
-        var stepX = Math.floor(this.sizeX / density);
-        var stepY = Math.floor(this.sizeY / density);
-        var stepZ = Math.floor(this.sizeZ / density);
+        this.densityX = densityX;
+        this.densityY = densityY;
+        this.densityZ = densityZ;
+        var stepX = Math.floor(this.sizeX / densityX);
+        var stepY = Math.floor(this.sizeY / densityY);
+        var stepZ = Math.floor(this.sizeZ / densityZ);
         for (var x = -this.sizeX; x <= this.sizeX; x += stepX) {
             for (var y = -this.sizeY; y <= this.sizeY; y += stepY) {
                 for (var z = -this.sizeZ; z <= this.sizeZ; z += stepZ) {
@@ -56,10 +59,12 @@ var ArrowField = (function () {
                     f.maxIntensity = newD.strength;
             });
         });
-        this.arrows.forEach(function (a) {
-            var newLength = Math.log(100 * a.strength / f.maxIntensity) / 2;
-            a.arrowHelper.setLength(newLength, newLength * 0.2, newLength * 0.3);
-        });
+        if (!this.normalizeStrength) {
+            this.arrows.forEach(function (a) {
+                var newLength = Math.log(100 * a.strength / f.maxIntensity) / 2;
+                a.arrowHelper.setLength(newLength, newLength * 0.2, newLength * 0.3);
+            });
+        }
     };
     ArrowField.prototype.electricField = function (charge, xDistance, yDistance, zDistance) {
         var distance = this.pythagoras3d(xDistance, yDistance, zDistance);
@@ -101,30 +106,19 @@ var World = (function () {
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
-        var newP1 = new Particle(THREE, 1, 0, 2, 0, '#ff0000');
-        var newP3 = new Particle(THREE, -1, 0, -2, 0, '#0000ff');
-        this.addParticle(newP1);
-        this.addParticle(newP3);
         var w = this;
-        this.particles.forEach(function (p) {
-            w.scene.add(p.mesh);
-        });
-        this.camera.position.x = 15;
-        this.camera.position.y = 15;
-        this.camera.position.z = 15;
+        this.camera.position.x = 20;
+        this.camera.position.y = 10;
+        this.camera.position.z = 40;
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
         this.pointLight = new THREE.PointLight(0xffffff, 1);
         this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         this.pointLight.position.x = 20;
-        this.pointLight.position.y = 10;
+        this.pointLight.position.y = 20;
         this.pointLight.position.z = 20;
         this.scene.add(this.pointLight, this.ambientLight);
-        this.arrowField = new ArrowField(THREE, 8, 8, 8, 2);
-        this.arrowField.calculateFieldPhysics(THREE, this.particles);
-        this.arrowField.arrows.forEach(function (a) {
-            w.scene.add(a.arrowHelper);
-        });
-        console.log(this.arrowField);
+        this.arrowField = new ArrowField(THREE, 8, 24, 8, 1.5, 4.5, 1.5);
+        console.log(this);
     }
     World.prototype.draw = function () {
         this.controls.update();
@@ -132,9 +126,32 @@ var World = (function () {
     };
     World.prototype.clearWorld = function () {
         this.particles = [];
+        var cId = this.scene.children.length - 1;
+        while (cId > 0) {
+            if (this.scene.children[cId].type == "Mesh") {
+                this.scene.remove(this.scene.children[cId]);
+            }
+            cId--;
+        }
     };
     World.prototype.addParticle = function (p) {
         this.particles.push(p);
+    };
+    World.prototype.updateParticles = function (THREE, length) {
+        var w = this;
+        this.clearWorld();
+        for (var i = -length; i <= length; i += 2) {
+            var newP = new Particle(THREE, 1, 0, i, 0, '#ff0000');
+            this.addParticle(newP);
+        }
+        ;
+        this.particles.forEach(function (p) {
+            w.scene.add(p.mesh);
+        });
+        this.arrowField.calculateFieldPhysics(THREE, this.particles);
+        this.arrowField.arrows.forEach(function (a) {
+            w.scene.add(a.arrowHelper);
+        });
     };
     return World;
 }());
@@ -142,8 +159,27 @@ define("index", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var world, resizeTimer = null;
+    var defaultLength = 10;
     function init(THREE) {
         world = new World(THREE);
+        world.updateParticles(THREE, defaultLength);
+        var infoPanel = document.createElement("div");
+        infoPanel.setAttribute("id", "info-panel");
+        infoPanel.classList.add("ui");
+        var lengthLabel = document.createElement("label");
+        lengthLabel.setAttribute("for", "length");
+        lengthLabel.textContent = "Length ";
+        var lengthInput = document.createElement("input");
+        lengthInput.setAttribute("id", "length");
+        lengthInput.setAttribute("min", "0");
+        lengthInput.type = "number";
+        lengthInput.value = defaultLength.toString();
+        lengthInput.addEventListener("change", function () {
+            world.updateParticles(THREE, parseInt(lengthInput.value));
+        });
+        infoPanel.appendChild(lengthLabel);
+        infoPanel.appendChild(lengthInput);
+        document.body.appendChild(infoPanel);
         window.addEventListener("resize", function (e) {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(rendererSizeReset, 250);

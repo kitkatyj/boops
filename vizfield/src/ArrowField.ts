@@ -1,19 +1,24 @@
 class ArrowField {
     arrows:Arrow[] = [];
     sizeX:number; sizeY:number; sizeZ:number;
-    density:number;
+    densityX:number;
+    densityY:number;
+    densityZ:number;
     kConstant:number = 1;
     maxIntensity:number = 0;
+    normalizeStrength:boolean = true;
     
-    constructor(THREE:any,sizeX:number,sizeY:number,sizeZ:number,density:number){
+    constructor(THREE:any,sizeX:number,sizeY:number,sizeZ:number,densityX:number,densityY:number,densityZ:number){
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
-        this.density = density;
+        this.densityX = densityX;
+        this.densityY = densityY;
+        this.densityZ = densityZ;
 
-        let stepX = Math.floor(this.sizeX / density);
-        let stepY = Math.floor(this.sizeY / density);
-        let stepZ = Math.floor(this.sizeZ / density);
+        let stepX = Math.floor(this.sizeX / densityX);
+        let stepY = Math.floor(this.sizeY / densityY);
+        let stepZ = Math.floor(this.sizeZ / densityZ);
 
         // for(let y = -this.sizeY; y <= this.sizeY; y+=stepY){
         //     let newA = new Arrow(THREE,0,y,0);
@@ -51,10 +56,12 @@ class ArrowField {
         });
 
         // once f.maxIntensity is done run the loop again adjust arrow length
-        this.arrows.forEach(function(a){
-            let newLength = Math.log(100 * a.strength / f.maxIntensity)/2;
-            a.arrowHelper.setLength(newLength,newLength*0.2,newLength*0.3);
-        });
+        if(!this.normalizeStrength){
+            this.arrows.forEach(function(a){
+                let newLength = Math.log(100 * a.strength / f.maxIntensity)/2;
+                a.arrowHelper.setLength(newLength,newLength*0.2,newLength*0.3);
+            });
+        }
     }
 
     electricField(charge:number, xDistance:number, yDistance:number, zDistance:number){

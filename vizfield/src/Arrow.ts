@@ -1,11 +1,11 @@
 class Arrow {
     color:string; length:number; strength:number;
     origin:any; direction:any; arrowHelper:any;
-    headLength:number = 0.5; headWidth:number = 0.3;
+    headLength:number = 1; headWidth:number = 0.6;
 
     constructor(THREE:any,originX:number, originY:number, originZ:number,length?:number,color?:string){
         this.color = color || '#ffffff';
-        this.length = length || 1;
+        this.length = length || 2;
         this.origin = new THREE.Vector3(originX,originY,originZ);
         this.direction = new THREE.Vector3(0,0,0);
         this.arrowHelper = new THREE.ArrowHelper(this.direction, this.origin, this.length, this.color, this.headLength, this.headWidth);
