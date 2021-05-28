@@ -106,7 +106,6 @@ var World = (function () {
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
-        var w = this;
         this.camera.position.x = 20;
         this.camera.position.y = 10;
         this.camera.position.z = 40;
@@ -145,6 +144,10 @@ var World = (function () {
             this.addParticle(newP);
         }
         ;
+        var cylinderGeometry = new THREE.CylinderGeometry(1, 1, (length + 1) * 2, 16);
+        var material = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true, wireframe: true });
+        var cylinder = new THREE.Mesh(cylinderGeometry, material);
+        w.scene.add(cylinder);
         this.particles.forEach(function (p) {
             w.scene.add(p.mesh);
         });

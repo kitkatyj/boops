@@ -19,9 +19,6 @@ class World {
         // this.addParticle(newP1);
         // this.addParticle(newP3);
 
-        let w = this;
-        
-
         this.camera.position.x = 20;
         this.camera.position.y = 10;
         this.camera.position.z = 40;
@@ -69,6 +66,12 @@ class World {
             let newP = new Particle(THREE,1,0,i,0,'#ff0000');
             this.addParticle(newP);
         };
+
+        let cylinderGeometry = new THREE.CylinderGeometry(1,1,(length+1)*2,16);
+        let material = new THREE.MeshBasicMaterial({color:0xffffff,opacity:0.5,transparent:true,wireframe:true});
+        let cylinder = new THREE.Mesh(cylinderGeometry,material);
+
+        w.scene.add(cylinder);
 
         this.particles.forEach(function(p){
             w.scene.add(p.mesh);
