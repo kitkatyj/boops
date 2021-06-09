@@ -1,7 +1,9 @@
 let world:World, resizeTimer = null; 
 let defaultLength = 10;
+let lengthInput, lengthLabel, three = null;
 
 export function init(THREE){
+    three = THREE;
     world = new World(THREE);
     world.updateParticles(THREE,defaultLength);
 
@@ -9,18 +11,20 @@ export function init(THREE){
     infoPanel.setAttribute("id","info-panel");
     infoPanel.classList.add("ui");
 
-    var lengthLabel = document.createElement("label");
+    lengthLabel = document.createElement("label");
     lengthLabel.setAttribute("for","length");
-    lengthLabel.textContent = "Length ";
+    lengthLabel.textContent = "Wire Length ";
 
-    var lengthInput = document.createElement("input");
+    lengthInput = document.createElement("input");
     lengthInput.setAttribute("id","length");
     lengthInput.setAttribute("min","0");
-    lengthInput.type = "number";
+    lengthInput.setAttribute("max","49");
+    lengthInput.type = "range";
     lengthInput.value = defaultLength.toString();
-    lengthInput.addEventListener("change",function(){
-        world.updateParticles(THREE,parseInt(lengthInput.value));
-    });
+    lengthInput.addEventListener("input",moveDragged);
+    lengthInput.addEventListener("mouseup",function(){
+        lengthLabel.textContent = "Wire Length ";
+    })
 
     infoPanel.appendChild(lengthLabel);
     infoPanel.appendChild(lengthInput);
@@ -31,7 +35,12 @@ export function init(THREE){
         resizeTimer = setTimeout(rendererSizeReset,250);
     });
 
-    draw();
+    draw(THREE);
+}
+
+function moveDragged(){
+    world.updateParticles(three,parseInt(lengthInput.value));
+    lengthLabel.textContent = parseInt(lengthInput.value)+1+" ";
 }
 
 function rendererSizeReset(){
@@ -40,7 +49,7 @@ function rendererSizeReset(){
     world.camera.updateProjectionMatrix();
 }
 
-function draw(){
+function draw(THREE:any){
     world.draw();
     requestAnimationFrame( draw );
 }

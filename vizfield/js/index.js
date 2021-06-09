@@ -18,23 +18,17 @@ var Arrow = (function () {
     return Arrow;
 }());
 var ArrowField = (function () {
-    function ArrowField(THREE, sizeX, sizeY, sizeZ, densityX, densityY, densityZ) {
+    function ArrowField(THREE, sizeX, sizeY, sizeZ, stepX, stepY, stepZ) {
         this.arrows = [];
         this.kConstant = 1;
         this.maxIntensity = 0;
-        this.normalizeStrength = true;
+        this.normalizeStrength = false;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
-        this.densityX = densityX;
-        this.densityY = densityY;
-        this.densityZ = densityZ;
-        var stepX = Math.floor(this.sizeX / densityX);
-        var stepY = Math.floor(this.sizeY / densityY);
-        var stepZ = Math.floor(this.sizeZ / densityZ);
-        for (var x = -this.sizeX; x <= this.sizeX; x += stepX) {
-            for (var y = -this.sizeY; y <= this.sizeY; y += stepY) {
-                for (var z = -this.sizeZ; z <= this.sizeZ; z += stepZ) {
+        for (var x = -stepX * this.sizeX; x <= stepX * this.sizeX; x += stepX * 2) {
+            for (var y = -stepY * this.sizeY; y <= stepY * this.sizeY; y += stepY * 2) {
+                for (var z = -stepZ * this.sizeZ; z <= stepZ * this.sizeZ; z += stepZ * 2) {
                     var newA = new Arrow(THREE, x, y, z);
                     this.addArrow(newA);
                 }
@@ -47,6 +41,7 @@ var ArrowField = (function () {
     ArrowField.prototype.calculateFieldPhysics = function (THREE, particles) {
         var f = this;
         this.arrows.forEach(function (a) {
+            a.strength = 0;
             particles.forEach(function (p, index) {
                 var xDistance = a.origin.x - p.posX;
                 var yDistance = a.origin.y - p.posY;
@@ -54,7 +49,7 @@ var ArrowField = (function () {
                 var newD = f.electricField(p.charge, xDistance, yDistance, zDistance);
                 var finalP = (particles.length == index + 1);
                 a.addDirection(THREE, newD.x, newD.y, newD.z, finalP);
-                a.strength = newD.strength;
+                a.strength += newD.strength;
                 if (f.maxIntensity < newD.strength && newD.strength != Infinity)
                     f.maxIntensity = newD.strength;
             });
@@ -116,8 +111,7 @@ var World = (function () {
         this.pointLight.position.y = 20;
         this.pointLight.position.z = 20;
         this.scene.add(this.pointLight, this.ambientLight);
-        this.arrowField = new ArrowField(THREE, 8, 24, 8, 1.5, 4.5, 1.5);
-        console.log(this);
+        this.arrowField = new ArrowField(THREE, 3, 6, 3, 3, 3, 3);
     }
     World.prototype.draw = function () {
         this.controls.update();
@@ -145,7 +139,7 @@ var World = (function () {
         }
         ;
         var cylinderGeometry = new THREE.CylinderGeometry(1, 1, (length + 1) * 2, 16);
-        var material = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true, wireframe: true });
+        var material = new THREE.MeshStandardMaterial({ color: 0xffffff, opacity: 0.5, transparent: true });
         var cylinder = new THREE.Mesh(cylinderGeometry, material);
         w.scene.add(cylinder);
         this.particles.forEach(function (p) {
@@ -163,22 +157,26 @@ define("index", ["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     var world, resizeTimer = null;
     var defaultLength = 10;
+    var lengthInput, lengthLabel, three = null;
     function init(THREE) {
+        three = THREE;
         world = new World(THREE);
         world.updateParticles(THREE, defaultLength);
         var infoPanel = document.createElement("div");
         infoPanel.setAttribute("id", "info-panel");
         infoPanel.classList.add("ui");
-        var lengthLabel = document.createElement("label");
+        lengthLabel = document.createElement("label");
         lengthLabel.setAttribute("for", "length");
-        lengthLabel.textContent = "Length ";
-        var lengthInput = document.createElement("input");
+        lengthLabel.textContent = "Wire Length ";
+        lengthInput = document.createElement("input");
         lengthInput.setAttribute("id", "length");
         lengthInput.setAttribute("min", "0");
-        lengthInput.type = "number";
+        lengthInput.setAttribute("max", "49");
+        lengthInput.type = "range";
         lengthInput.value = defaultLength.toString();
-        lengthInput.addEventListener("change", function () {
-            world.updateParticles(THREE, parseInt(lengthInput.value));
+        lengthInput.addEventListener("input", moveDragged);
+        lengthInput.addEventListener("mouseup", function () {
+            lengthLabel.textContent = "Wire Length ";
         });
         infoPanel.appendChild(lengthLabel);
         infoPanel.appendChild(lengthInput);
@@ -187,15 +185,19 @@ define("index", ["require", "exports"], function (require, exports) {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(rendererSizeReset, 250);
         });
-        draw();
+        draw(THREE);
     }
     exports.init = init;
+    function moveDragged() {
+        world.updateParticles(three, parseInt(lengthInput.value));
+        lengthLabel.textContent = parseInt(lengthInput.value) + 1 + " ";
+    }
     function rendererSizeReset() {
         world.renderer.setSize(window.innerWidth, window.innerHeight);
         world.camera.aspect = window.innerWidth / window.innerHeight;
         world.camera.updateProjectionMatrix();
     }
-    function draw() {
+    function draw(THREE) {
         world.draw();
         requestAnimationFrame(draw);
     }

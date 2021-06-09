@@ -1,33 +1,18 @@
 class ArrowField {
     arrows:Arrow[] = [];
     sizeX:number; sizeY:number; sizeZ:number;
-    densityX:number;
-    densityY:number;
-    densityZ:number;
     kConstant:number = 1;
     maxIntensity:number = 0;
-    normalizeStrength:boolean = true;
+    normalizeStrength:boolean = false;
     
-    constructor(THREE:any,sizeX:number,sizeY:number,sizeZ:number,densityX:number,densityY:number,densityZ:number){
+    constructor(THREE:any,sizeX:number,sizeY:number,sizeZ:number,stepX:number,stepY:number,stepZ:number){
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
-        this.densityX = densityX;
-        this.densityY = densityY;
-        this.densityZ = densityZ;
 
-        let stepX = Math.floor(this.sizeX / densityX);
-        let stepY = Math.floor(this.sizeY / densityY);
-        let stepZ = Math.floor(this.sizeZ / densityZ);
-
-        // for(let y = -this.sizeY; y <= this.sizeY; y+=stepY){
-        //     let newA = new Arrow(THREE,0,y,0);
-        //     this.addArrow(newA);
-        // }
-
-        for(let x = -this.sizeX; x <= this.sizeX; x+=stepX){
-            for(let y = -this.sizeY; y <= this.sizeY; y+=stepY){
-                for(let z = -this.sizeZ; z <= this.sizeZ; z+=stepZ){
+        for(let x = -stepX*this.sizeX; x <= stepX*this.sizeX; x+=stepX*2){
+            for(let y = -stepY*this.sizeY; y <= stepY*this.sizeY; y+=stepY*2){
+                for(let z = -stepZ*this.sizeZ; z <= stepZ*this.sizeZ; z+=stepZ*2){
                     let newA = new Arrow(THREE,x,y,z);
                     this.addArrow(newA);
                 }
@@ -42,6 +27,7 @@ class ArrowField {
     calculateFieldPhysics(THREE:any,particles:Particle[]){
         let f = this;
         this.arrows.forEach(function(a){
+            a.strength = 0;
             particles.forEach(function(p,index){
                 let xDistance = a.origin.x - p.posX;
                 let yDistance = a.origin.y - p.posY;
@@ -49,7 +35,7 @@ class ArrowField {
                 let newD = f.electricField(p.charge,xDistance,yDistance,zDistance);
                 let finalP = (particles.length == index + 1);
                 a.addDirection(THREE,newD.x,newD.y,newD.z,finalP);
-                a.strength = newD.strength;
+                a.strength += newD.strength;
                 if(f.maxIntensity < newD.strength && newD.strength != Infinity) f.maxIntensity = newD.strength;
                 // a.arrowHelper.setLength(newD.strength,0.5,0.3);
             });

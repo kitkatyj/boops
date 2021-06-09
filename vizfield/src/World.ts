@@ -33,9 +33,9 @@ class World {
 
         this.scene.add(this.pointLight,this.ambientLight);
 
-        this.arrowField = new ArrowField(THREE,8,24,8,1.5,4.5,1.5);
+        this.arrowField = new ArrowField(THREE,3,6,3,3,3,3);
 
-        console.log(this);
+        // console.log(this);
     }
 
     draw(){
@@ -68,7 +68,7 @@ class World {
         };
 
         let cylinderGeometry = new THREE.CylinderGeometry(1,1,(length+1)*2,16);
-        let material = new THREE.MeshBasicMaterial({color:0xffffff,opacity:0.5,transparent:true,wireframe:true});
+        let material = new THREE.MeshStandardMaterial({color:0xffffff,opacity:0.5,transparent:true});
         let cylinder = new THREE.Mesh(cylinderGeometry,material);
 
         w.scene.add(cylinder);
