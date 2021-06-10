@@ -50,6 +50,7 @@ class ArrowField {
             });
         });
 
+        // console.log(f.normalizeStrength);
         // once f.maxIntensity is done run the loop again adjust arrow length
         if(!this.normalizeStrength){
             this.arrows.forEach(function(a){

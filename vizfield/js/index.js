@@ -103,24 +103,30 @@ var Particle = (function () {
 var World = (function () {
     function World(THREE) {
         this.particles = [];
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer();
+        this.wireLength = 10;
+        this.default = {
+            sizeX: 4, sizeY: 8, sizeZ: 4
+        };
+        this.THREE = THREE;
+        this.scene = new this.THREE.Scene();
+        this.camera = new this.THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new this.THREE.WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
         this.camera.position.x = 20;
         this.camera.position.y = 10;
         this.camera.position.z = 40;
-        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-        this.pointLight = new THREE.PointLight(0xffffff, 1);
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        this.controls = new this.THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.pointLight = new this.THREE.PointLight(0xffffff, 1);
+        this.ambientLight = new this.THREE.AmbientLight(0xffffff, 0.5);
         this.pointLight.position.x = 20;
         this.pointLight.position.y = 20;
         this.pointLight.position.z = 20;
         this.scene.add(this.pointLight, this.ambientLight);
-        this.arrowField = new ArrowField(THREE, 3, 6, 3, 3, 3, 3);
+        this.arrowField = new ArrowField(this.THREE, this.default.sizeX - 1, this.default.sizeY - 1, this.default.sizeZ - 1, 3, 3, 3);
     }
     World.prototype.draw = function () {
+        this.refreshArrowField();
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
     };
@@ -147,35 +153,38 @@ var World = (function () {
     World.prototype.addParticle = function (p) {
         this.particles.push(p);
     };
-    World.prototype.updateParticles = function (THREE, length) {
+    World.prototype.updateParticles = function () {
         var w = this;
         this.clearWorld();
-        for (var i = -length; i <= length; i += 2) {
-            var newP = new Particle(THREE, 1, 0, i, 0, '#ff0000');
+        for (var i = -w.wireLength; i <= w.wireLength; i += 2) {
+            var newP = new Particle(this.THREE, 1, 0, i, 0, '#ff0000');
             this.addParticle(newP);
         }
         ;
-        var cylinderGeometry = new THREE.CylinderGeometry(1, 1, (length + 1) * 2, 16);
-        var material = new THREE.MeshStandardMaterial({ color: 0xffffff, opacity: 0.5, transparent: true });
-        var cylinder = new THREE.Mesh(cylinderGeometry, material);
+        var cylinderGeometry = new this.THREE.CylinderGeometry(1, 1, (w.wireLength) * 2 + 2, 16);
+        var material = new this.THREE.MeshStandardMaterial({ color: 0xffffff, opacity: 0.5, transparent: true });
+        var cylinder = new this.THREE.Mesh(cylinderGeometry, material);
         w.scene.add(cylinder);
         this.particles.forEach(function (p) {
             w.scene.add(p.mesh);
         });
-        this.arrowField.calculateFieldPhysics(THREE, this.particles);
+        this.arrowField.calculateFieldPhysics(this.THREE, this.particles);
         this.arrowField.arrows.forEach(function (a) {
             w.scene.add(a.arrowHelper);
         });
     };
-    World.prototype.updateArrowField = function (THREE) {
+    World.prototype.updateArrowField = function () {
         var w = this;
         w.clearArrowField();
-        w.arrowField.regenerateArrows(THREE);
-        this.arrowField.calculateFieldPhysics(THREE, this.particles);
+        w.arrowField.regenerateArrows(this.THREE);
+        this.arrowField.calculateFieldPhysics(this.THREE, this.particles);
         this.arrowField.arrows.forEach(function (a) {
             w.scene.add(a.arrowHelper);
         });
         console.log(w.arrowField);
+    };
+    World.prototype.refreshArrowField = function () {
+        this.arrowField.calculateFieldPhysics(this.THREE, this.particles);
     };
     return World;
 }());
@@ -183,16 +192,27 @@ define("index", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var world, resizeTimer = null;
-    var defaultLength = 10;
-    var lengthInput, lengthLabel, three = null;
+    var lengthInput, lengthLabel = null;
     function init(THREE) {
-        three = THREE;
         world = new World(THREE);
-        world.updateParticles(THREE, defaultLength);
+        world.updateParticles();
         var infoPanel = document.createElement("div");
         infoPanel.setAttribute("id", "info-panel");
         infoPanel.classList.add("ui");
         var line1 = document.createElement("p");
+        var normalizeLabel = document.createElement("label");
+        normalizeLabel.setAttribute("for", "normalize");
+        normalizeLabel.textContent = "Normalize Strength";
+        var normalizeInput = document.createElement("input");
+        normalizeInput.setAttribute("id", "normalize");
+        normalizeInput.setAttribute("type", "checkbox");
+        normalizeInput.addEventListener("change", function () {
+            world.arrowField.normalizeStrength = this.checked;
+            world.arrowField.calculateFieldPhysics(THREE, world.particles);
+        });
+        line1.appendChild(normalizeLabel);
+        line1.appendChild(normalizeInput);
+        var line2 = document.createElement("p");
         lengthLabel = document.createElement("label");
         lengthLabel.setAttribute("for", "length");
         lengthLabel.textContent = "Wire Length ";
@@ -201,14 +221,14 @@ define("index", ["require", "exports"], function (require, exports) {
         lengthInput.setAttribute("min", "0");
         lengthInput.setAttribute("max", "49");
         lengthInput.type = "range";
-        lengthInput.value = defaultLength.toString();
+        lengthInput.value = world.wireLength.toString();
         lengthInput.addEventListener("input", moveDragged);
         lengthInput.addEventListener("mouseup", function () {
             lengthLabel.textContent = "Wire Length ";
         });
-        line1.appendChild(lengthLabel);
-        line1.appendChild(lengthInput);
-        var line2 = document.createElement("p");
+        line2.appendChild(lengthLabel);
+        line2.appendChild(lengthInput);
+        var line3 = document.createElement("p");
         var sizeXLabel = document.createElement("label");
         sizeXLabel.setAttribute("for", "size-x-input");
         sizeXLabel.textContent = "Field Size X";
@@ -217,10 +237,10 @@ define("index", ["require", "exports"], function (require, exports) {
         sizeXInput.setAttribute("type", "number");
         sizeXInput.setAttribute("min", "1");
         sizeXInput.setAttribute("max", "9");
-        sizeXInput.value = "4";
+        sizeXInput.value = world.default.sizeX.toString();
         sizeXInput.addEventListener("change", function () {
             world.arrowField.sizeX = parseInt(sizeXInput.value) - 1;
-            world.updateArrowField(THREE);
+            world.updateArrowField();
         });
         var sizeYLabel = document.createElement("label");
         sizeYLabel.setAttribute("for", "size-y-input");
@@ -230,10 +250,10 @@ define("index", ["require", "exports"], function (require, exports) {
         sizeYInput.setAttribute("type", "number");
         sizeYInput.setAttribute("min", "1");
         sizeYInput.setAttribute("max", "9");
-        sizeYInput.value = "7";
+        sizeYInput.value = world.default.sizeY.toString();
         sizeYInput.addEventListener("change", function () {
             world.arrowField.sizeY = parseInt(sizeYInput.value) - 1;
-            world.updateArrowField(THREE);
+            world.updateArrowField();
         });
         var sizeZLabel = document.createElement("label");
         sizeZLabel.setAttribute("for", "size-z-input");
@@ -243,29 +263,31 @@ define("index", ["require", "exports"], function (require, exports) {
         sizeZInput.setAttribute("type", "number");
         sizeZInput.setAttribute("min", "1");
         sizeZInput.setAttribute("max", "9");
-        sizeZInput.value = "4";
+        sizeZInput.value = world.default.sizeZ.toString();
         sizeZInput.addEventListener("change", function () {
             world.arrowField.sizeZ = parseInt(sizeZInput.value) - 1;
-            world.updateArrowField(THREE);
+            world.updateArrowField();
         });
-        line2.appendChild(sizeXLabel);
-        line2.appendChild(sizeXInput);
-        line2.appendChild(sizeYLabel);
-        line2.appendChild(sizeYInput);
-        line2.appendChild(sizeZLabel);
-        line2.appendChild(sizeZInput);
+        line3.appendChild(sizeXLabel);
+        line3.appendChild(sizeXInput);
+        line3.appendChild(sizeYLabel);
+        line3.appendChild(sizeYInput);
+        line3.appendChild(sizeZLabel);
+        line3.appendChild(sizeZInput);
         infoPanel.appendChild(line1);
         infoPanel.appendChild(line2);
+        infoPanel.appendChild(line3);
         document.body.appendChild(infoPanel);
         window.addEventListener("resize", function (e) {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(rendererSizeReset, 250);
         });
-        draw(THREE);
+        draw();
     }
     exports.init = init;
     function moveDragged() {
-        world.updateParticles(three, parseInt(lengthInput.value));
+        world.wireLength = lengthInput.value;
+        world.updateParticles();
         lengthLabel.textContent = parseInt(lengthInput.value) + 1 + " ";
     }
     function rendererSizeReset() {
@@ -273,7 +295,7 @@ define("index", ["require", "exports"], function (require, exports) {
         world.camera.aspect = window.innerWidth / window.innerHeight;
         world.camera.updateProjectionMatrix();
     }
-    function draw(THREE) {
+    function draw() {
         world.draw();
         requestAnimationFrame(draw);
     }

@@ -4,28 +4,30 @@ class World {
     material:any;
     mesh:any;
     particles:Particle[] = [];
+    wireLength:number = 10;
+    THREE:any;
 
     arrowField:ArrowField;
 
+    default = {
+        sizeX:4, sizeY:8, sizeZ:4 
+    }
+
     constructor(THREE){
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-        this.renderer = new THREE.WebGLRenderer();
+        this.THREE = THREE;
+        this.scene = new this.THREE.Scene();
+        this.camera = new this.THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        this.renderer = new this.THREE.WebGLRenderer();
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( this.renderer.domElement );
-
-        // let newP1 = new Particle(THREE,1,0,2,0,'#ff0000');
-        // let newP3 = new Particle(THREE,-1,0,-2,0,'#0000ff');
-        // this.addParticle(newP1);
-        // this.addParticle(newP3);
 
         this.camera.position.x = 20;
         this.camera.position.y = 10;
         this.camera.position.z = 40;
 
-        this.controls = new THREE.OrbitControls(this.camera,this.renderer.domElement);
-        this.pointLight = new THREE.PointLight(0xffffff,1);
-        this.ambientLight = new THREE.AmbientLight(0xffffff,0.5);
+        this.controls = new this.THREE.OrbitControls(this.camera,this.renderer.domElement);
+        this.pointLight = new this.THREE.PointLight(0xffffff,1);
+        this.ambientLight = new this.THREE.AmbientLight(0xffffff,0.5);
 
         this.pointLight.position.x = 20;
         this.pointLight.position.y = 20;
@@ -33,12 +35,13 @@ class World {
 
         this.scene.add(this.pointLight,this.ambientLight);
 
-        this.arrowField = new ArrowField(THREE,3,6,3,3,3,3);
+        this.arrowField = new ArrowField(this.THREE,this.default.sizeX-1,this.default.sizeY-1,this.default.sizeZ-1,3,3,3);
 
         // console.log(this);
     }
 
     draw(){
+        this.refreshArrowField();
         this.controls.update();
 	    this.renderer.render( this.scene, this.camera );
     }
@@ -71,17 +74,17 @@ class World {
         this.particles.push(p);
     }
 
-    updateParticles(THREE:any,length:number){
+    updateParticles(){
         let w = this;
         this.clearWorld();
-        for(let i = -length; i <= length; i+=2){
-            let newP = new Particle(THREE,1,0,i,0,'#ff0000');
+        for(let i = -w.wireLength; i <= w.wireLength; i+=2){
+            let newP = new Particle(this.THREE,1,0,i,0,'#ff0000');
             this.addParticle(newP);
         };
 
-        let cylinderGeometry = new THREE.CylinderGeometry(1,1,(length+1)*2,16);
-        let material = new THREE.MeshStandardMaterial({color:0xffffff,opacity:0.5,transparent:true});
-        let cylinder = new THREE.Mesh(cylinderGeometry,material);
+        let cylinderGeometry = new this.THREE.CylinderGeometry(1,1,(w.wireLength)*2+2,16);
+        let material = new this.THREE.MeshStandardMaterial({color:0xffffff,opacity:0.5,transparent:true});
+        let cylinder = new this.THREE.Mesh(cylinderGeometry,material);
 
         w.scene.add(cylinder);
 
@@ -89,20 +92,24 @@ class World {
             w.scene.add(p.mesh);
         });
 
-        this.arrowField.calculateFieldPhysics(THREE,this.particles);
+        this.arrowField.calculateFieldPhysics(this.THREE,this.particles);
         this.arrowField.arrows.forEach(function(a){
             w.scene.add(a.arrowHelper);
         });
     }
 
-    updateArrowField(THREE:any){
+    updateArrowField(){
         let w = this;
         w.clearArrowField();
-        w.arrowField.regenerateArrows(THREE);
-        this.arrowField.calculateFieldPhysics(THREE,this.particles);
+        w.arrowField.regenerateArrows(this.THREE);
+        this.arrowField.calculateFieldPhysics(this.THREE,this.particles);
         this.arrowField.arrows.forEach(function(a){
             w.scene.add(a.arrowHelper);
         });
         console.log(w.arrowField);
+    }
+
+    refreshArrowField(){
+        this.arrowField.calculateFieldPhysics(this.THREE,this.particles);
     }
 }
