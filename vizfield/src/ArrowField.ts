@@ -1,6 +1,7 @@
 class ArrowField {
     arrows:Arrow[] = [];
     sizeX:number; sizeY:number; sizeZ:number;
+    stepX:number; stepY:number; stepZ:number;
     kConstant:number = 1;
     maxIntensity:number = 0;
     normalizeStrength:boolean = false;
@@ -9,10 +10,18 @@ class ArrowField {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
+        this.stepX = stepX;
+        this.stepY = stepY;
+        this.stepZ = stepZ;
 
-        for(let x = -stepX*this.sizeX; x <= stepX*this.sizeX; x+=stepX*2){
-            for(let y = -stepY*this.sizeY; y <= stepY*this.sizeY; y+=stepY*2){
-                for(let z = -stepZ*this.sizeZ; z <= stepZ*this.sizeZ; z+=stepZ*2){
+        this.regenerateArrows(THREE);
+    }
+
+    regenerateArrows(THREE:any){
+        this.arrows = [];
+        for(let x = -this.stepX*this.sizeX; x <= this.stepX*this.sizeX; x+=this.stepX*2){
+            for(let y = -this.stepY*this.sizeY; y <= this.stepY*this.sizeY; y+=this.stepY*2){
+                for(let z = -this.stepZ*this.sizeZ; z <= this.stepZ*this.sizeZ; z+=this.stepZ*2){
                     let newA = new Arrow(THREE,x,y,z);
                     this.addArrow(newA);
                 }

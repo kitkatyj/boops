@@ -45,10 +45,22 @@ input[type=range]::-webkit-slider-thumb {
 
 #info-panel {
     bottom:0; right:0;
-    padding:1em;
     font-size: 1.5em;
+    text-align: right;
 }
 
-#info-panel input {
-    width: 6em;
+#info-panel p {
+    margin:1em;
+}
+
+#info-panel input[type=range]  {
+    width: 8em;
+}
+
+#info-panel label {
+    padding:0.5em;
+}
+
+#info-panel input{
+    width: 2.5em;
 }

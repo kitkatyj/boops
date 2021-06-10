@@ -26,15 +26,22 @@ var ArrowField = (function () {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
-        for (var x = -stepX * this.sizeX; x <= stepX * this.sizeX; x += stepX * 2) {
-            for (var y = -stepY * this.sizeY; y <= stepY * this.sizeY; y += stepY * 2) {
-                for (var z = -stepZ * this.sizeZ; z <= stepZ * this.sizeZ; z += stepZ * 2) {
+        this.stepX = stepX;
+        this.stepY = stepY;
+        this.stepZ = stepZ;
+        this.regenerateArrows(THREE);
+    }
+    ArrowField.prototype.regenerateArrows = function (THREE) {
+        this.arrows = [];
+        for (var x = -this.stepX * this.sizeX; x <= this.stepX * this.sizeX; x += this.stepX * 2) {
+            for (var y = -this.stepY * this.sizeY; y <= this.stepY * this.sizeY; y += this.stepY * 2) {
+                for (var z = -this.stepZ * this.sizeZ; z <= this.stepZ * this.sizeZ; z += this.stepZ * 2) {
                     var newA = new Arrow(THREE, x, y, z);
                     this.addArrow(newA);
                 }
             }
         }
-    }
+    };
     ArrowField.prototype.addArrow = function (a) {
         this.arrows.push(a);
     };
@@ -127,6 +134,16 @@ var World = (function () {
             cId--;
         }
     };
+    World.prototype.clearArrowField = function () {
+        this.arrowField.arrows = [];
+        var cId = this.scene.children.length - 1;
+        while (cId > 0) {
+            if (this.scene.children[cId].type == "ArrowHelper") {
+                this.scene.remove(this.scene.children[cId]);
+            }
+            cId--;
+        }
+    };
     World.prototype.addParticle = function (p) {
         this.particles.push(p);
     };
@@ -150,6 +167,16 @@ var World = (function () {
             w.scene.add(a.arrowHelper);
         });
     };
+    World.prototype.updateArrowField = function (THREE) {
+        var w = this;
+        w.clearArrowField();
+        w.arrowField.regenerateArrows(THREE);
+        this.arrowField.calculateFieldPhysics(THREE, this.particles);
+        this.arrowField.arrows.forEach(function (a) {
+            w.scene.add(a.arrowHelper);
+        });
+        console.log(w.arrowField);
+    };
     return World;
 }());
 define("index", ["require", "exports"], function (require, exports) {
@@ -165,6 +192,7 @@ define("index", ["require", "exports"], function (require, exports) {
         var infoPanel = document.createElement("div");
         infoPanel.setAttribute("id", "info-panel");
         infoPanel.classList.add("ui");
+        var line1 = document.createElement("p");
         lengthLabel = document.createElement("label");
         lengthLabel.setAttribute("for", "length");
         lengthLabel.textContent = "Wire Length ";
@@ -178,8 +206,56 @@ define("index", ["require", "exports"], function (require, exports) {
         lengthInput.addEventListener("mouseup", function () {
             lengthLabel.textContent = "Wire Length ";
         });
-        infoPanel.appendChild(lengthLabel);
-        infoPanel.appendChild(lengthInput);
+        line1.appendChild(lengthLabel);
+        line1.appendChild(lengthInput);
+        var line2 = document.createElement("p");
+        var sizeXLabel = document.createElement("label");
+        sizeXLabel.setAttribute("for", "size-x-input");
+        sizeXLabel.textContent = "Field Size X";
+        var sizeXInput = document.createElement("input");
+        sizeXInput.setAttribute("id", "size-x-input");
+        sizeXInput.setAttribute("type", "number");
+        sizeXInput.setAttribute("min", "1");
+        sizeXInput.setAttribute("max", "9");
+        sizeXInput.value = "4";
+        sizeXInput.addEventListener("change", function () {
+            world.arrowField.sizeX = parseInt(sizeXInput.value) - 1;
+            world.updateArrowField(THREE);
+        });
+        var sizeYLabel = document.createElement("label");
+        sizeYLabel.setAttribute("for", "size-y-input");
+        sizeYLabel.textContent = "Y";
+        var sizeYInput = document.createElement("input");
+        sizeYInput.setAttribute("id", "size-y-input");
+        sizeYInput.setAttribute("type", "number");
+        sizeYInput.setAttribute("min", "1");
+        sizeYInput.setAttribute("max", "9");
+        sizeYInput.value = "7";
+        sizeYInput.addEventListener("change", function () {
+            world.arrowField.sizeY = parseInt(sizeYInput.value) - 1;
+            world.updateArrowField(THREE);
+        });
+        var sizeZLabel = document.createElement("label");
+        sizeZLabel.setAttribute("for", "size-z-input");
+        sizeZLabel.textContent = "Z";
+        var sizeZInput = document.createElement("input");
+        sizeZInput.setAttribute("id", "size-z-input");
+        sizeZInput.setAttribute("type", "number");
+        sizeZInput.setAttribute("min", "1");
+        sizeZInput.setAttribute("max", "9");
+        sizeZInput.value = "4";
+        sizeZInput.addEventListener("change", function () {
+            world.arrowField.sizeZ = parseInt(sizeZInput.value) - 1;
+            world.updateArrowField(THREE);
+        });
+        line2.appendChild(sizeXLabel);
+        line2.appendChild(sizeXInput);
+        line2.appendChild(sizeYLabel);
+        line2.appendChild(sizeYInput);
+        line2.appendChild(sizeZLabel);
+        line2.appendChild(sizeZInput);
+        infoPanel.appendChild(line1);
+        infoPanel.appendChild(line2);
         document.body.appendChild(infoPanel);
         window.addEventListener("resize", function (e) {
             clearTimeout(resizeTimer);

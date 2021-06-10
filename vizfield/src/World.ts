@@ -55,6 +55,18 @@ class World {
         }
     }
 
+    clearArrowField(){
+        this.arrowField.arrows = [];
+        let cId = this.scene.children.length - 1;
+        
+        while(cId > 0){
+            if(this.scene.children[cId].type == "ArrowHelper"){
+                this.scene.remove(this.scene.children[cId]);
+            }
+            cId--;
+        }
+    }
+
     addParticle(p:Particle){
         this.particles.push(p);
     }
@@ -81,5 +93,16 @@ class World {
         this.arrowField.arrows.forEach(function(a){
             w.scene.add(a.arrowHelper);
         });
+    }
+
+    updateArrowField(THREE:any){
+        let w = this;
+        w.clearArrowField();
+        w.arrowField.regenerateArrows(THREE);
+        this.arrowField.calculateFieldPhysics(THREE,this.particles);
+        this.arrowField.arrows.forEach(function(a){
+            w.scene.add(a.arrowHelper);
+        });
+        console.log(w.arrowField);
     }
 }
