@@ -22,7 +22,7 @@ class ArrowField {
         for(let x = -this.stepX*this.sizeX; x <= this.stepX*this.sizeX; x+=this.stepX*2){
             for(let y = -this.stepY*this.sizeY; y <= this.stepY*this.sizeY; y+=this.stepY*2){
                 for(let z = -this.stepZ*this.sizeZ; z <= this.stepZ*this.sizeZ; z+=this.stepZ*2){
-                    let newA = new Arrow(THREE,x,y,z);
+                    let newA = new Arrow(THREE,x,y,z,'#ff8888');
                     this.addArrow(newA);
                 }
             }
@@ -55,7 +55,7 @@ class ArrowField {
         if(!this.normalizeStrength){
             this.arrows.forEach(function(a){
                 let newLength = Math.log(100 * a.strength / f.maxIntensity)/2;
-                a.arrowHelper.setLength(newLength,newLength*0.2,newLength*0.3);
+                a.arrowHelper.setLength(newLength,newLength*0.4,newLength*0.3);
             });
         }
     }

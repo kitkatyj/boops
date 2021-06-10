@@ -1,6 +1,6 @@
 var Arrow = (function () {
-    function Arrow(THREE, originX, originY, originZ, length, color) {
-        this.headLength = 1;
+    function Arrow(THREE, originX, originY, originZ, color, length) {
+        this.headLength = 2;
         this.headWidth = 0.6;
         this.color = color || '#ffffff';
         this.length = length || 2;
@@ -36,7 +36,7 @@ var ArrowField = (function () {
         for (var x = -this.stepX * this.sizeX; x <= this.stepX * this.sizeX; x += this.stepX * 2) {
             for (var y = -this.stepY * this.sizeY; y <= this.stepY * this.sizeY; y += this.stepY * 2) {
                 for (var z = -this.stepZ * this.sizeZ; z <= this.stepZ * this.sizeZ; z += this.stepZ * 2) {
-                    var newA = new Arrow(THREE, x, y, z);
+                    var newA = new Arrow(THREE, x, y, z, '#ff8888');
                     this.addArrow(newA);
                 }
             }
@@ -64,7 +64,7 @@ var ArrowField = (function () {
         if (!this.normalizeStrength) {
             this.arrows.forEach(function (a) {
                 var newLength = Math.log(100 * a.strength / f.maxIntensity) / 2;
-                a.arrowHelper.setLength(newLength, newLength * 0.2, newLength * 0.3);
+                a.arrowHelper.setLength(newLength, newLength * 0.4, newLength * 0.3);
             });
         }
     };
@@ -104,8 +104,9 @@ var World = (function () {
     function World(THREE) {
         this.particles = [];
         this.wireLength = 10;
+        this.axis = 'x';
         this.default = {
-            sizeX: 4, sizeY: 8, sizeZ: 4
+            sizeX: 8, sizeY: 4, sizeZ: 4
         };
         this.THREE = THREE;
         this.scene = new this.THREE.Scene();
@@ -157,11 +158,15 @@ var World = (function () {
         var w = this;
         this.clearWorld();
         for (var i = -w.wireLength; i <= w.wireLength; i += 2) {
-            var newP = new Particle(this.THREE, 1, 0, i, 0, '#ff0000');
+            var newP = new Particle(this.THREE, 1, this.axis == 'x' ? i : 0, this.axis == 'y' ? i : 0, this.axis == 'z' ? i : 0, '#ffffff');
             this.addParticle(newP);
         }
         ;
         var cylinderGeometry = new this.THREE.CylinderGeometry(1, 1, (w.wireLength) * 2 + 2, 16);
+        if (this.axis == 'x')
+            cylinderGeometry.rotateZ(Math.PI * 0.5);
+        else if (this.axis == 'z')
+            cylinderGeometry.rotateX(Math.PI * 0.5);
         var material = new this.THREE.MeshStandardMaterial({ color: 0xffffff, opacity: 0.5, transparent: true });
         var cylinder = new this.THREE.Mesh(cylinderGeometry, material);
         w.scene.add(cylinder);
@@ -181,7 +186,6 @@ var World = (function () {
         this.arrowField.arrows.forEach(function (a) {
             w.scene.add(a.arrowHelper);
         });
-        console.log(w.arrowField);
     };
     World.prototype.refreshArrowField = function () {
         this.arrowField.calculateFieldPhysics(this.THREE, this.particles);
@@ -199,6 +203,20 @@ define("index", ["require", "exports"], function (require, exports) {
         var infoPanel = document.createElement("div");
         infoPanel.setAttribute("id", "info-panel");
         infoPanel.classList.add("ui");
+        var line0 = document.createElement("p");
+        var axisLabel = document.createElement("label");
+        axisLabel.setAttribute("for", "axis");
+        axisLabel.textContent = "Wire Axis";
+        var axisSelect = document.createElement("select");
+        axisSelect.setAttribute("id", "axis");
+        axisSelect.innerHTML = "<option value='x'>X</option><option value='y'>Y</option><option value='z'>Z</option>";
+        axisSelect.value = world.axis;
+        axisSelect.addEventListener("change", function () {
+            world.axis = this.value;
+            world.updateParticles();
+        });
+        line0.appendChild(axisLabel);
+        line0.appendChild(axisSelect);
         var line1 = document.createElement("p");
         var normalizeLabel = document.createElement("label");
         normalizeLabel.setAttribute("for", "normalize");
@@ -274,6 +292,7 @@ define("index", ["require", "exports"], function (require, exports) {
         line3.appendChild(sizeYInput);
         line3.appendChild(sizeZLabel);
         line3.appendChild(sizeZInput);
+        infoPanel.appendChild(line0);
         infoPanel.appendChild(line1);
         infoPanel.appendChild(line2);
         infoPanel.appendChild(line3);

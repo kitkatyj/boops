@@ -9,6 +9,23 @@ export function init(THREE){
     infoPanel.setAttribute("id","info-panel");
     infoPanel.classList.add("ui");
 
+    let line0 = document.createElement("p");
+    let axisLabel = document.createElement("label");
+    axisLabel.setAttribute("for","axis");
+    axisLabel.textContent = "Wire Axis";
+
+    let axisSelect = document.createElement("select");
+    axisSelect.setAttribute("id","axis");
+    axisSelect.innerHTML = "<option value='x'>X</option><option value='y'>Y</option><option value='z'>Z</option>";
+    axisSelect.value = world.axis;
+    axisSelect.addEventListener("change",function(){
+        world.axis = this.value;
+        world.updateParticles();
+    });
+
+    line0.appendChild(axisLabel);
+    line0.appendChild(axisSelect);
+
     let line1 = document.createElement("p");
     let normalizeLabel = document.createElement("label");
     normalizeLabel.setAttribute("for","normalize");
@@ -96,6 +113,7 @@ export function init(THREE){
     line3.appendChild(sizeZLabel);
     line3.appendChild(sizeZInput);
 
+    infoPanel.appendChild(line0);
     infoPanel.appendChild(line1);
     infoPanel.appendChild(line2);
     infoPanel.appendChild(line3);

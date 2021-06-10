@@ -5,12 +5,14 @@ class World {
     mesh:any;
     particles:Particle[] = [];
     wireLength:number = 10;
+    axis:string = 'x';
+
     THREE:any;
 
     arrowField:ArrowField;
 
     default = {
-        sizeX:4, sizeY:8, sizeZ:4 
+        sizeX:8, sizeY:4, sizeZ:4 
     }
 
     constructor(THREE){
@@ -78,11 +80,13 @@ class World {
         let w = this;
         this.clearWorld();
         for(let i = -w.wireLength; i <= w.wireLength; i+=2){
-            let newP = new Particle(this.THREE,1,0,i,0,'#ff0000');
+            let newP = new Particle(this.THREE,1, this.axis == 'x' ? i : 0 , this.axis == 'y' ? i : 0 , this.axis == 'z' ? i : 0,'#ffffff');
             this.addParticle(newP);
         };
 
         let cylinderGeometry = new this.THREE.CylinderGeometry(1,1,(w.wireLength)*2+2,16);
+        if(this.axis == 'x') cylinderGeometry.rotateZ(Math.PI * 0.5);
+        else if(this.axis == 'z') cylinderGeometry.rotateX(Math.PI * 0.5);
         let material = new this.THREE.MeshStandardMaterial({color:0xffffff,opacity:0.5,transparent:true});
         let cylinder = new this.THREE.Mesh(cylinderGeometry,material);
 
@@ -106,7 +110,6 @@ class World {
         this.arrowField.arrows.forEach(function(a){
             w.scene.add(a.arrowHelper);
         });
-        console.log(w.arrowField);
     }
 
     refreshArrowField(){

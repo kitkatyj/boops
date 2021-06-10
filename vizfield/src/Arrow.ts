@@ -1,9 +1,9 @@
 class Arrow {
     color:string; length:number; strength:number;
     origin:any; direction:any; arrowHelper:any;
-    headLength:number = 1; headWidth:number = 0.6;
+    headLength:number = 2; headWidth:number = 0.6;
 
-    constructor(THREE:any,originX:number, originY:number, originZ:number,length?:number,color?:string){
+    constructor(THREE:any,originX:number, originY:number, originZ:number,color?:string,length?:number){
         this.color = color || '#ffffff';
         this.length = length || 2;
         this.origin = new THREE.Vector3(originX,originY,originZ);
