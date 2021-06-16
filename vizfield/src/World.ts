@@ -6,6 +6,9 @@ class World {
     particles:Particle[] = [];
     wireLength:number = 10;
     axis:string = 'x';
+    tick:number = 0;
+    field:number = 0; // 0 - electric, 1 - magnetic
+    current:number = 0.1;
 
     THREE:any;
 
@@ -23,11 +26,12 @@ class World {
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( this.renderer.domElement );
 
-        this.camera.position.x = 20;
+        this.camera.position.x = -20;
         this.camera.position.y = 10;
         this.camera.position.z = 40;
 
         this.controls = new this.THREE.OrbitControls(this.camera,this.renderer.domElement);
+        this.controls.autoRotate = true;
         this.pointLight = new this.THREE.PointLight(0xffffff,1);
         this.ambientLight = new this.THREE.AmbientLight(0xffffff,0.5);
 
@@ -43,8 +47,23 @@ class World {
     }
 
     draw(){
+        let w = this;
         this.refreshArrowField();
         this.controls.update();
+        if(this.field == 1){
+            this.particles.forEach(function(p){
+                if(w.axis == 'x'){
+                    p.mesh.position.x += w.current;
+                    if(p.mesh.position.x > w.wireLength) p.mesh.position.x = -w.wireLength-2;
+                } else if(w.axis == 'y'){
+                    p.mesh.position.y += w.current;
+                    if(p.mesh.position.y > w.wireLength) p.mesh.position.y = -w.wireLength-2;
+                } else if(w.axis == 'z'){
+                    p.mesh.position.z += w.current;
+                    if(p.mesh.position.z > w.wireLength) p.mesh.position.z = -w.wireLength-2;
+                }
+            });
+        }
 	    this.renderer.render( this.scene, this.camera );
     }
 
@@ -80,7 +99,7 @@ class World {
         let w = this;
         this.clearWorld();
         for(let i = -w.wireLength; i <= w.wireLength; i+=2){
-            let newP = new Particle(this.THREE,1, this.axis == 'x' ? i : 0 , this.axis == 'y' ? i : 0 , this.axis == 'z' ? i : 0,'#ffffff');
+            let newP = new Particle(this.THREE,1, this.axis == 'x' ? i : 0 , this.axis == 'y' ? i : 0 , this.axis == 'z' ? i : 0,'#ff0000');
             this.addParticle(newP);
         };
 

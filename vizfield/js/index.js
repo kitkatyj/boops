@@ -36,7 +36,7 @@ var ArrowField = (function () {
         for (var x = -this.stepX * this.sizeX; x <= this.stepX * this.sizeX; x += this.stepX * 2) {
             for (var y = -this.stepY * this.sizeY; y <= this.stepY * this.sizeY; y += this.stepY * 2) {
                 for (var z = -this.stepZ * this.sizeZ; z <= this.stepZ * this.sizeZ; z += this.stepZ * 2) {
-                    var newA = new Arrow(THREE, x, y, z, '#ff8888');
+                    var newA = new Arrow(THREE, x, y, z, '#ffffff');
                     this.addArrow(newA);
                 }
             }
@@ -93,10 +93,12 @@ var Particle = (function () {
         this.posY = posY;
         this.posZ = posZ;
         this.color = color || '#ffffff';
-        this.geometry = new THREE.SphereGeometry(1, 16, 16);
-        this.geometry.translate(posX, posY, posZ);
+        this.geometry = new THREE.SphereGeometry(0.9, 16, 16);
         this.material = new THREE.MeshStandardMaterial({ color: this.color });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
+        this.mesh.position.x = posX;
+        this.mesh.position.y = posY;
+        this.mesh.position.z = posZ;
     }
     return Particle;
 }());
@@ -105,6 +107,9 @@ var World = (function () {
         this.particles = [];
         this.wireLength = 10;
         this.axis = 'x';
+        this.tick = 0;
+        this.field = 0;
+        this.current = 0.1;
         this.default = {
             sizeX: 8, sizeY: 4, sizeZ: 4
         };
@@ -114,10 +119,11 @@ var World = (function () {
         this.renderer = new this.THREE.WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
-        this.camera.position.x = 20;
+        this.camera.position.x = -20;
         this.camera.position.y = 10;
         this.camera.position.z = 40;
         this.controls = new this.THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.autoRotate = true;
         this.pointLight = new this.THREE.PointLight(0xffffff, 1);
         this.ambientLight = new this.THREE.AmbientLight(0xffffff, 0.5);
         this.pointLight.position.x = 20;
@@ -127,8 +133,28 @@ var World = (function () {
         this.arrowField = new ArrowField(this.THREE, this.default.sizeX - 1, this.default.sizeY - 1, this.default.sizeZ - 1, 3, 3, 3);
     }
     World.prototype.draw = function () {
+        var w = this;
         this.refreshArrowField();
         this.controls.update();
+        if (this.field == 1) {
+            this.particles.forEach(function (p) {
+                if (w.axis == 'x') {
+                    p.mesh.position.x += w.current;
+                    if (p.mesh.position.x > w.wireLength)
+                        p.mesh.position.x = -w.wireLength - 2;
+                }
+                else if (w.axis == 'y') {
+                    p.mesh.position.y += w.current;
+                    if (p.mesh.position.y > w.wireLength)
+                        p.mesh.position.y = -w.wireLength - 2;
+                }
+                else if (w.axis == 'z') {
+                    p.mesh.position.z += w.current;
+                    if (p.mesh.position.z > w.wireLength)
+                        p.mesh.position.z = -w.wireLength - 2;
+                }
+            });
+        }
         this.renderer.render(this.scene, this.camera);
     };
     World.prototype.clearWorld = function () {
@@ -158,7 +184,7 @@ var World = (function () {
         var w = this;
         this.clearWorld();
         for (var i = -w.wireLength; i <= w.wireLength; i += 2) {
-            var newP = new Particle(this.THREE, 1, this.axis == 'x' ? i : 0, this.axis == 'y' ? i : 0, this.axis == 'z' ? i : 0, '#ffffff');
+            var newP = new Particle(this.THREE, 1, this.axis == 'x' ? i : 0, this.axis == 'y' ? i : 0, this.axis == 'z' ? i : 0, '#ff0000');
             this.addParticle(newP);
         }
         ;
@@ -204,6 +230,19 @@ define("index", ["require", "exports"], function (require, exports) {
         infoPanel.setAttribute("id", "info-panel");
         infoPanel.classList.add("ui");
         var line0 = document.createElement("p");
+        var autoRotateLabel = document.createElement("label");
+        autoRotateLabel.setAttribute("for", "auto-rotate");
+        autoRotateLabel.textContent = "Auto-Rotate";
+        var autoRotateInput = document.createElement("input");
+        autoRotateInput.setAttribute("id", "auto-rotate");
+        autoRotateInput.setAttribute("type", "checkbox");
+        autoRotateInput.checked = world.controls.autoRotate;
+        autoRotateInput.addEventListener("change", function () {
+            world.controls.autoRotate = autoRotateInput.checked;
+        });
+        line0.appendChild(autoRotateLabel);
+        line0.appendChild(autoRotateInput);
+        var line1 = document.createElement("p");
         var axisLabel = document.createElement("label");
         axisLabel.setAttribute("for", "axis");
         axisLabel.textContent = "Wire Axis";
@@ -215,9 +254,6 @@ define("index", ["require", "exports"], function (require, exports) {
             world.axis = this.value;
             world.updateParticles();
         });
-        line0.appendChild(axisLabel);
-        line0.appendChild(axisSelect);
-        var line1 = document.createElement("p");
         var normalizeLabel = document.createElement("label");
         normalizeLabel.setAttribute("for", "normalize");
         normalizeLabel.textContent = "Normalize Strength";
@@ -228,6 +264,8 @@ define("index", ["require", "exports"], function (require, exports) {
             world.arrowField.normalizeStrength = this.checked;
             world.arrowField.calculateFieldPhysics(THREE, world.particles);
         });
+        line1.appendChild(axisLabel);
+        line1.appendChild(axisSelect);
         line1.appendChild(normalizeLabel);
         line1.appendChild(normalizeInput);
         var line2 = document.createElement("p");

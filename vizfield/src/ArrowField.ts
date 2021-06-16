@@ -22,7 +22,7 @@ class ArrowField {
         for(let x = -this.stepX*this.sizeX; x <= this.stepX*this.sizeX; x+=this.stepX*2){
             for(let y = -this.stepY*this.sizeY; y <= this.stepY*this.sizeY; y+=this.stepY*2){
                 for(let z = -this.stepZ*this.sizeZ; z <= this.stepZ*this.sizeZ; z+=this.stepZ*2){
-                    let newA = new Arrow(THREE,x,y,z,'#ff8888');
+                    let newA = new Arrow(THREE,x,y,z,'#ffffff');
                     this.addArrow(newA);
                 }
             }
@@ -74,6 +74,21 @@ class ArrowField {
             z:result * Math.cos(phi)
         };
     }
+
+    // magneticField(current:number, axis:string, xDistance:number, yDistance:number, zDistance:number){
+    //     let distance = this.pythagoras3d(xDistance,yDistance,zDistance);
+    //     let theta = Math.atan2(yDistance,xDistance);
+    //     let phi = Math.acos(zDistance / distance);
+
+    //     let result = this.kConstant * current / (distance * distance);
+
+    //     return {
+    //         strength: Math.abs(result),
+    //         x:result * Math.sin(phi) * Math.cos(theta),
+    //         y:result * Math.sin(phi) * Math.sin(theta),
+    //         z:result * Math.cos(phi)
+    //     };
+    // }
 
     pythagoras3d(x:number, y:number, z:number){
         return Math.sqrt(x*x + y*y + z*z);

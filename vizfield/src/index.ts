@@ -10,6 +10,39 @@ export function init(THREE){
     infoPanel.classList.add("ui");
 
     let line0 = document.createElement("p");
+
+    // let fieldLabel = document.createElement("label");
+    // fieldLabel.setAttribute("for","field");
+    // fieldLabel.textContent = "Field";
+
+    // let fieldSelect = document.createElement("select");
+    // fieldSelect.setAttribute("id","field");
+    // fieldSelect.innerHTML = "<option value=0>Electric</option><option value=1>Magnetic</option>";
+    // fieldSelect.value = world.field.toString();
+    // fieldSelect.addEventListener("change",function(){
+    //     world.field = parseInt(fieldSelect.value);
+    // });
+
+    // line0.appendChild(fieldLabel);
+    // line0.appendChild(fieldSelect);
+
+    let autoRotateLabel = document.createElement("label");
+    autoRotateLabel.setAttribute("for","auto-rotate");
+    autoRotateLabel.textContent = "Auto-Rotate";
+
+    let autoRotateInput = document.createElement("input");
+    autoRotateInput.setAttribute("id","auto-rotate");
+    autoRotateInput.setAttribute("type","checkbox");
+    autoRotateInput.checked = world.controls.autoRotate;
+    autoRotateInput.addEventListener("change",function(){
+        world.controls.autoRotate = autoRotateInput.checked;
+    });
+
+    line0.appendChild(autoRotateLabel);
+    line0.appendChild(autoRotateInput);
+
+    let line1 = document.createElement("p");
+
     let axisLabel = document.createElement("label");
     axisLabel.setAttribute("for","axis");
     axisLabel.textContent = "Wire Axis";
@@ -23,10 +56,6 @@ export function init(THREE){
         world.updateParticles();
     });
 
-    line0.appendChild(axisLabel);
-    line0.appendChild(axisSelect);
-
-    let line1 = document.createElement("p");
     let normalizeLabel = document.createElement("label");
     normalizeLabel.setAttribute("for","normalize");
     normalizeLabel.textContent = "Normalize Strength";
@@ -39,6 +68,8 @@ export function init(THREE){
         world.arrowField.calculateFieldPhysics(THREE,world.particles);
     });
 
+    line1.appendChild(axisLabel);
+    line1.appendChild(axisSelect);
     line1.appendChild(normalizeLabel);
     line1.appendChild(normalizeInput);
 
