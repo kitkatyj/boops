@@ -33,17 +33,28 @@ class ArrowField {
         this.arrows.push(a);
     }
 
-    calculateFieldPhysics(THREE:any,particles:Particle[]){
+    calculateFieldPhysics(world:World){
         let f = this;
         this.arrows.forEach(function(a){
             a.strength = 0;
-            particles.forEach(function(p,index){
+            world.particles.forEach(function(p,index){
                 let xDistance = a.origin.x - p.posX;
                 let yDistance = a.origin.y - p.posY;
                 let zDistance = a.origin.z - p.posZ;
-                let newD = f.electricField(p.charge,xDistance,yDistance,zDistance);
-                let finalP = (particles.length == index + 1);
-                a.addDirection(THREE,newD.x,newD.y,newD.z,finalP);
+
+                let newD = null;
+
+                switch(world.field){
+                    case 0:
+                        newD = f.electricField(p.charge,xDistance,yDistance,zDistance);
+                        break;
+                    case 1:
+                        newD = f.magneticField(world.current,world.axis,xDistance,yDistance,zDistance);
+                        break;
+                }
+
+                let finalP = (world.particles.length == index + 1);
+                a.addDirection(world.THREE,newD.x,newD.y,newD.z,finalP);
                 a.strength += newD.strength;
                 if(f.maxIntensity < newD.strength && newD.strength != Infinity) f.maxIntensity = newD.strength;
                 // a.arrowHelper.setLength(newD.strength,0.5,0.3);
@@ -69,28 +80,52 @@ class ArrowField {
 
         return {
             strength: Math.abs(result),
-            x:result * Math.sin(phi) * Math.cos(theta),
-            y:result * Math.sin(phi) * Math.sin(theta),
-            z:result * Math.cos(phi)
+            x:Math.sin(phi) * Math.cos(theta),
+            y:Math.sin(phi) * Math.sin(theta),
+            z:Math.cos(phi)
         };
     }
 
-    // magneticField(current:number, axis:string, xDistance:number, yDistance:number, zDistance:number){
-    //     let distance = this.pythagoras3d(xDistance,yDistance,zDistance);
-    //     let theta = Math.atan2(yDistance,xDistance);
-    //     let phi = Math.acos(zDistance / distance);
+    magneticField(current:number, wireAxis:string, xDistance:number, yDistance:number, zDistance:number){
+        // Bio-Savart Law in Cartesian coordinates
 
-    //     let result = this.kConstant * current / (distance * distance);
+        let distance = this.pythagoras3d(xDistance,yDistance,zDistance);
+        let theta = Math.atan2(yDistance,xDistance);
+        let phi = Math.acos(zDistance / distance);
 
-    //     return {
-    //         strength: Math.abs(result),
-    //         x:result * Math.sin(phi) * Math.cos(theta),
-    //         y:result * Math.sin(phi) * Math.sin(theta),
-    //         z:result * Math.cos(phi)
-    //     };
-    // }
+        let rHat = {
+            x:Math.sin(phi) * Math.cos(theta),
+            y:Math.sin(phi) * Math.sin(theta),
+            z:Math.cos(phi)
+        };
+
+        let dL = {x:0, y:0, z:0};
+        switch(wireAxis){
+            case 'x': dL.x = 1; break;
+            case 'y': dL.y = 1; break;
+            case 'z': dL.z = 1; break;
+        }
+
+        let crossResult = this.crossProduct(dL.x,dL.y,dL.z, rHat.x,rHat.y,rHat.z);
+        let strengthResult = this.kConstant * current / (distance * distance);
+
+        return {
+            strength: strengthResult,
+            x: crossResult.x,
+            y: crossResult.y,
+            z: crossResult.z
+        }
+    }
 
     pythagoras3d(x:number, y:number, z:number){
         return Math.sqrt(x*x + y*y + z*z);
+    }
+
+    crossProduct(a1:number, a2:number, a3:number, b1:number, b2:number, b3:number){
+        return {
+            x: a2 * b3 - a3 * b2,
+            y: a3 * b1 - a1 * b3,
+            z: a1 * b2 - a2 * b1
+        }
     }
 }

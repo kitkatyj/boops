@@ -11,20 +11,20 @@ export function init(THREE){
 
     let line0 = document.createElement("p");
 
-    // let fieldLabel = document.createElement("label");
-    // fieldLabel.setAttribute("for","field");
-    // fieldLabel.textContent = "Field";
+    let fieldLabel = document.createElement("label");
+    fieldLabel.setAttribute("for","field");
+    fieldLabel.textContent = "Field";
 
-    // let fieldSelect = document.createElement("select");
-    // fieldSelect.setAttribute("id","field");
-    // fieldSelect.innerHTML = "<option value=0>Electric</option><option value=1>Magnetic</option>";
-    // fieldSelect.value = world.field.toString();
-    // fieldSelect.addEventListener("change",function(){
-    //     world.field = parseInt(fieldSelect.value);
-    // });
+    let fieldSelect = document.createElement("select");
+    fieldSelect.setAttribute("id","field");
+    fieldSelect.innerHTML = "<option value=0>Electric</option><option value=1>Magnetic</option>";
+    fieldSelect.value = world.field.toString();
+    fieldSelect.addEventListener("change",function(){
+        world.field = parseInt(fieldSelect.value);
+    });
 
-    // line0.appendChild(fieldLabel);
-    // line0.appendChild(fieldSelect);
+    line0.appendChild(fieldLabel);
+    line0.appendChild(fieldSelect);
 
     let autoRotateLabel = document.createElement("label");
     autoRotateLabel.setAttribute("for","auto-rotate");
@@ -65,7 +65,7 @@ export function init(THREE){
     normalizeInput.setAttribute("type","checkbox");
     normalizeInput.addEventListener("change",function(){
         world.arrowField.normalizeStrength = this.checked;
-        world.arrowField.calculateFieldPhysics(THREE,world.particles);
+        world.arrowField.calculateFieldPhysics(world);
     });
 
     line1.appendChild(axisLabel);

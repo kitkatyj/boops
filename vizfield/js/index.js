@@ -45,17 +45,25 @@ var ArrowField = (function () {
     ArrowField.prototype.addArrow = function (a) {
         this.arrows.push(a);
     };
-    ArrowField.prototype.calculateFieldPhysics = function (THREE, particles) {
+    ArrowField.prototype.calculateFieldPhysics = function (world) {
         var f = this;
         this.arrows.forEach(function (a) {
             a.strength = 0;
-            particles.forEach(function (p, index) {
+            world.particles.forEach(function (p, index) {
                 var xDistance = a.origin.x - p.posX;
                 var yDistance = a.origin.y - p.posY;
                 var zDistance = a.origin.z - p.posZ;
-                var newD = f.electricField(p.charge, xDistance, yDistance, zDistance);
-                var finalP = (particles.length == index + 1);
-                a.addDirection(THREE, newD.x, newD.y, newD.z, finalP);
+                var newD = null;
+                switch (world.field) {
+                    case 0:
+                        newD = f.electricField(p.charge, xDistance, yDistance, zDistance);
+                        break;
+                    case 1:
+                        newD = f.magneticField(world.current, world.axis, xDistance, yDistance, zDistance);
+                        break;
+                }
+                var finalP = (world.particles.length == index + 1);
+                a.addDirection(world.THREE, newD.x, newD.y, newD.z, finalP);
                 a.strength += newD.strength;
                 if (f.maxIntensity < newD.strength && newD.strength != Infinity)
                     f.maxIntensity = newD.strength;
@@ -75,13 +83,50 @@ var ArrowField = (function () {
         var result = this.kConstant * charge / (distance * distance);
         return {
             strength: Math.abs(result),
-            x: result * Math.sin(phi) * Math.cos(theta),
-            y: result * Math.sin(phi) * Math.sin(theta),
-            z: result * Math.cos(phi)
+            x: Math.sin(phi) * Math.cos(theta),
+            y: Math.sin(phi) * Math.sin(theta),
+            z: Math.cos(phi)
+        };
+    };
+    ArrowField.prototype.magneticField = function (current, wireAxis, xDistance, yDistance, zDistance) {
+        var distance = this.pythagoras3d(xDistance, yDistance, zDistance);
+        var theta = Math.atan2(yDistance, xDistance);
+        var phi = Math.acos(zDistance / distance);
+        var rHat = {
+            x: Math.sin(phi) * Math.cos(theta),
+            y: Math.sin(phi) * Math.sin(theta),
+            z: Math.cos(phi)
+        };
+        var dL = { x: 0, y: 0, z: 0 };
+        switch (wireAxis) {
+            case 'x':
+                dL.x = 1;
+                break;
+            case 'y':
+                dL.y = 1;
+                break;
+            case 'z':
+                dL.z = 1;
+                break;
+        }
+        var crossResult = this.crossProduct(dL.x, dL.y, dL.z, rHat.x, rHat.y, rHat.z);
+        var strengthResult = this.kConstant * current / (distance * distance);
+        return {
+            strength: strengthResult,
+            x: crossResult.x,
+            y: crossResult.y,
+            z: crossResult.z
         };
     };
     ArrowField.prototype.pythagoras3d = function (x, y, z) {
         return Math.sqrt(x * x + y * y + z * z);
+    };
+    ArrowField.prototype.crossProduct = function (a1, a2, a3, b1, b2, b3) {
+        return {
+            x: a2 * b3 - a3 * b2,
+            y: a3 * b1 - a1 * b3,
+            z: a1 * b2 - a2 * b1
+        };
     };
     return ArrowField;
 }());
@@ -108,7 +153,7 @@ var World = (function () {
         this.wireLength = 10;
         this.axis = 'x';
         this.tick = 0;
-        this.field = 0;
+        this.field = 1;
         this.current = 0.1;
         this.default = {
             sizeX: 8, sizeY: 4, sizeZ: 4
@@ -123,7 +168,7 @@ var World = (function () {
         this.camera.position.y = 10;
         this.camera.position.z = 40;
         this.controls = new this.THREE.OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.autoRotate = true;
+        this.controls.autoRotate = false;
         this.pointLight = new this.THREE.PointLight(0xffffff, 1);
         this.ambientLight = new this.THREE.AmbientLight(0xffffff, 0.5);
         this.pointLight.position.x = 20;
@@ -199,7 +244,7 @@ var World = (function () {
         this.particles.forEach(function (p) {
             w.scene.add(p.mesh);
         });
-        this.arrowField.calculateFieldPhysics(this.THREE, this.particles);
+        this.arrowField.calculateFieldPhysics(this);
         this.arrowField.arrows.forEach(function (a) {
             w.scene.add(a.arrowHelper);
         });
@@ -208,13 +253,13 @@ var World = (function () {
         var w = this;
         w.clearArrowField();
         w.arrowField.regenerateArrows(this.THREE);
-        this.arrowField.calculateFieldPhysics(this.THREE, this.particles);
+        this.arrowField.calculateFieldPhysics(this);
         this.arrowField.arrows.forEach(function (a) {
             w.scene.add(a.arrowHelper);
         });
     };
     World.prototype.refreshArrowField = function () {
-        this.arrowField.calculateFieldPhysics(this.THREE, this.particles);
+        this.arrowField.calculateFieldPhysics(this);
     };
     return World;
 }());
@@ -230,6 +275,18 @@ define("index", ["require", "exports"], function (require, exports) {
         infoPanel.setAttribute("id", "info-panel");
         infoPanel.classList.add("ui");
         var line0 = document.createElement("p");
+        var fieldLabel = document.createElement("label");
+        fieldLabel.setAttribute("for", "field");
+        fieldLabel.textContent = "Field";
+        var fieldSelect = document.createElement("select");
+        fieldSelect.setAttribute("id", "field");
+        fieldSelect.innerHTML = "<option value=0>Electric</option><option value=1>Magnetic</option>";
+        fieldSelect.value = world.field.toString();
+        fieldSelect.addEventListener("change", function () {
+            world.field = parseInt(fieldSelect.value);
+        });
+        line0.appendChild(fieldLabel);
+        line0.appendChild(fieldSelect);
         var autoRotateLabel = document.createElement("label");
         autoRotateLabel.setAttribute("for", "auto-rotate");
         autoRotateLabel.textContent = "Auto-Rotate";
@@ -262,7 +319,7 @@ define("index", ["require", "exports"], function (require, exports) {
         normalizeInput.setAttribute("type", "checkbox");
         normalizeInput.addEventListener("change", function () {
             world.arrowField.normalizeStrength = this.checked;
-            world.arrowField.calculateFieldPhysics(THREE, world.particles);
+            world.arrowField.calculateFieldPhysics(world);
         });
         line1.appendChild(axisLabel);
         line1.appendChild(axisSelect);

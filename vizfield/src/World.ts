@@ -7,7 +7,7 @@ class World {
     wireLength:number = 10;
     axis:string = 'x';
     tick:number = 0;
-    field:number = 0; // 0 - electric, 1 - magnetic
+    field:number = 1; // 0 - electric, 1 - magnetic
     current:number = 0.1;
 
     THREE:any;
@@ -31,7 +31,7 @@ class World {
         this.camera.position.z = 40;
 
         this.controls = new this.THREE.OrbitControls(this.camera,this.renderer.domElement);
-        this.controls.autoRotate = true;
+        this.controls.autoRotate = false;
         this.pointLight = new this.THREE.PointLight(0xffffff,1);
         this.ambientLight = new this.THREE.AmbientLight(0xffffff,0.5);
 
@@ -115,7 +115,7 @@ class World {
             w.scene.add(p.mesh);
         });
 
-        this.arrowField.calculateFieldPhysics(this.THREE,this.particles);
+        this.arrowField.calculateFieldPhysics(this);
         this.arrowField.arrows.forEach(function(a){
             w.scene.add(a.arrowHelper);
         });
@@ -125,13 +125,13 @@ class World {
         let w = this;
         w.clearArrowField();
         w.arrowField.regenerateArrows(this.THREE);
-        this.arrowField.calculateFieldPhysics(this.THREE,this.particles);
+        this.arrowField.calculateFieldPhysics(this);
         this.arrowField.arrows.forEach(function(a){
             w.scene.add(a.arrowHelper);
         });
     }
 
     refreshArrowField(){
-        this.arrowField.calculateFieldPhysics(this.THREE,this.particles);
+        this.arrowField.calculateFieldPhysics(this);
     }
 }
