@@ -294,6 +294,7 @@ var UI = (function () {
         d.innerHTML = "fps:" + fps + "<br>";
         d.innerHTML += "cursorPosition: [" + world.cursorPosition[0] + "," + world.cursorPosition[1] + "]<br>";
         d.innerHTML += "drawingOffset: [" + world.drawingOffset[0] + "," + world.drawingOffset[1] + "]<br>";
+        d.innerHTML += "cameraPosition: [" + world.cameraPosition[0] + "," + world.cameraPosition[1] + "]<br>";
         d.innerHTML += "shiftPress: " + world.shiftPress + "<br>";
         d.innerHTML += "dragging: " + world.dragging + "<br>";
     };
@@ -461,6 +462,7 @@ function init() {
         ];
     });
     canvas.addEventListener("mousedown", function (e) {
+        var particleSelected = false;
         world.getParticles().forEach(function (p) {
             var drawFromX = p.position[0] * world.scale + world.drawingOffset[0];
             var drawFromY = p.position[1] * -world.scale + world.drawingOffset[1];
@@ -470,12 +472,16 @@ function init() {
                 p.dragOffset[0] = world.cursorPosition[0] - p.position[0];
                 p.dragOffset[1] = world.cursorPosition[1] - p.position[1];
                 document.addEventListener("mousemove", particleDragged);
+                particleSelected = true;
             }
             else {
                 p.selected = false;
             }
         });
         ui.initInfo();
+        if (!particleSelected) {
+            document.addEventListener("mousemove", backgroundDragged);
+        }
     });
     document.addEventListener("mouseup", function (e) {
         if (world.dragging) {
@@ -485,6 +491,7 @@ function init() {
         }
         world.dragging = false;
         document.removeEventListener("mousemove", particleDragged);
+        document.removeEventListener("mousemove", backgroundDragged);
         canvas.style.cursor = "auto";
         world.getParticles().forEach(function (p) {
             p.mouseDown = false;
@@ -510,17 +517,21 @@ function draw() {
     (_b = ui) === null || _b === void 0 ? void 0 : _b.updateDebug(world, times.length);
     window.requestAnimationFrame(draw);
 }
+function backgroundDragged() {
+    world.dragging = true;
+    canvas.style.cursor = "grabbing";
+}
 function particleDragged() {
     world.dragging = true;
     world.calculatePhysics();
     world.getParticles().forEach(function (p) {
         if (p.mouseDown) {
             canvas.style.cursor = "grabbing";
-            p.position[0] = world.cursorPosition[0] - p.dragOffset[0];
-            p.position[1] = world.cursorPosition[1] - p.dragOffset[1];
+            p.position[0] = parseFloat((world.cursorPosition[0] - p.dragOffset[0]).toFixed(1));
+            p.position[1] = parseFloat((world.cursorPosition[1] - p.dragOffset[1]).toFixed(1));
             if (p.positionInputs) {
-                p.positionInputs[0].value = p.position[0].toString();
-                p.positionInputs[1].value = p.position[1].toString();
+                p.positionInputs[0].value = (world.cursorPosition[0] - p.dragOffset[0]).toFixed(1);
+                p.positionInputs[1].value = (world.cursorPosition[1] - p.dragOffset[1]).toFixed(1);
             }
             if (p.velocityInputs) {
                 p.velocityInputs[0].value = p.velocity[0].toString();

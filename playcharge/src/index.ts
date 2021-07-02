@@ -38,6 +38,7 @@ function init(){
         ];
     });
     canvas.addEventListener("mousedown",function(e){
+        let particleSelected:boolean = false;
         world.getParticles().forEach(function(p){
             let drawFromX = p.position[0]* world.scale + world.drawingOffset[0];
             let drawFromY = p.position[1]* -world.scale + world.drawingOffset[1];
@@ -51,11 +52,17 @@ function init(){
                 p.dragOffset[0] = world.cursorPosition[0] - p.position[0];
                 p.dragOffset[1] = world.cursorPosition[1] - p.position[1];
                 document.addEventListener("mousemove",particleDragged);
+                particleSelected = true;
             } else {
                 p.selected = false;
             }
         });
         ui.initInfo();
+
+        if(!particleSelected){
+            // Background drag!
+            document.addEventListener("mousemove",backgroundDragged);
+        }
     });
     document.addEventListener("mouseup",function(e){
         if(world.dragging) {
@@ -65,6 +72,7 @@ function init(){
         }
         world.dragging = false;
         document.removeEventListener("mousemove",particleDragged);
+        document.removeEventListener("mousemove",backgroundDragged);
         canvas.style.cursor = "auto";
         world.getParticles().forEach(function(p){
             p.mouseDown = false;
@@ -99,17 +107,22 @@ function draw(){
     window.requestAnimationFrame(draw);
 }
 
+function backgroundDragged(){
+    world.dragging = true;
+    canvas.style.cursor = "grabbing";
+}
+
 function particleDragged(){
     world.dragging = true;
     world.calculatePhysics();
     world.getParticles().forEach(function(p){
         if(p.mouseDown){
             canvas.style.cursor = "grabbing";
-            p.position[0] = world.cursorPosition[0] - p.dragOffset[0];
-            p.position[1] = world.cursorPosition[1] - p.dragOffset[1];
+            p.position[0] = parseFloat((world.cursorPosition[0] - p.dragOffset[0]).toFixed(1));
+            p.position[1] = parseFloat((world.cursorPosition[1] - p.dragOffset[1]).toFixed(1));
             if(p.positionInputs){
-                p.positionInputs[0].value = p.position[0].toString();
-                p.positionInputs[1].value = p.position[1].toString();
+                p.positionInputs[0].value = (world.cursorPosition[0] - p.dragOffset[0]).toFixed(1);
+                p.positionInputs[1].value = (world.cursorPosition[1] - p.dragOffset[1]).toFixed(1);
             }
             if(p.velocityInputs){
                 p.velocityInputs[0].value = p.velocity[0].toString();

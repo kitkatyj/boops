@@ -321,6 +321,7 @@ class UI {
         d.innerHTML = "fps:"+fps+"<br>";
         d.innerHTML += "cursorPosition: ["+world.cursorPosition[0]+","+world.cursorPosition[1]+"]<br>";
         d.innerHTML += "drawingOffset: ["+world.drawingOffset[0]+","+world.drawingOffset[1]+"]<br>";
+        d.innerHTML += "cameraPosition: ["+world.cameraPosition[0]+","+world.cameraPosition[1]+"]<br>";
         d.innerHTML += "shiftPress: "+world.shiftPress+"<br>";
         d.innerHTML += "dragging: "+world.dragging+"<br>";
     }
