@@ -2,7 +2,6 @@ class World {
     cameraPosition: number[] = [0,0];
     scale: number = 10;
     drawingOffset: number[] = [0,0];
-    private savedParticles: Particle[] = [];
     private particles: Particle[] = [];
     c_constant: number = 1;
     paused: boolean = true;
@@ -12,16 +11,23 @@ class World {
     shiftPress: boolean = false;
 
     constructor(){
-        let defaultP1:Particle = new Particle(1,2,[-15.5,0.4]);
-        let defaultP2:Particle = new Particle(1,1,[13.8,-12.5]);
-        let defaultP3:Particle = new Particle(-1,1,[-3.4,0.9]);
-
-        this.addParticle(defaultP1);
-        this.addParticle(defaultP2);
-        this.addParticle(defaultP3);
-
-        this.calculatePhysics();
-        this.saveCurrentParticles();
+        // localStorage check
+        let wTemp = JSON.parse(localStorage.getItem("world"));
+        if(wTemp){
+            this.load();
+        } else {
+            let defaultP1:Particle = new Particle(1,2,[-15.5,0.4],'#00EAD3');
+            let defaultP2:Particle = new Particle(1,1,[13.8,-12.5],'#FF449F');
+            let defaultP3:Particle = new Particle(-1,1,[-3.4,0.9],'#005F99');
+    
+            this.addParticle(defaultP1);
+            this.addParticle(defaultP2);
+            this.addParticle(defaultP3);
+    
+            this.calculatePhysics();
+        }
+        
+        this.save();
     }
 
     draw(ctx:CanvasRenderingContext2D){
@@ -106,22 +112,32 @@ class World {
         }
     }
 
-    resetWorld(){
+    translateParticles(savedParticles:Array<any>){
         let w = this; this.particles = [];
-        JSON.parse(JSON.stringify(this.savedParticles)).forEach(function(p:any){
+        JSON.parse(JSON.stringify(savedParticles)).forEach(function(p:any){
             let newP = new Particle(p.charge, p.mass, p.position, p.color, p.velocity, p.acceleration);
             newP.setId(p.id);
             w.particles.push(newP);
         });
     };
 
-    saveCurrentParticles(){
-        let w = this; this.savedParticles = [];
-        JSON.parse(JSON.stringify(this.particles)).forEach(function(p:any){
-            let newP = new Particle(p.charge, p.mass, p.position, p.color, p.velocity, p.acceleration);
-            newP.setId(p.id);
-            w.savedParticles.push(newP);
-        });
+    save(){
+        localStorage.setItem("world", JSON.stringify(this));
+    }
+
+    load(){
+        let wTemp = JSON.parse(localStorage.getItem("world"));
+
+        this.arrowScale = wTemp.arrowScale;
+        this.c_constant = wTemp.c_constant;
+        this.cameraPosition = wTemp.cameraPosition;
+        this.dragging = false;
+        this.drawingOffset = wTemp.drawingOffset;
+        this.paused = true;
+        this.scale = wTemp.scale;
+        this.shiftPress = false;
+
+        this.translateParticles(wTemp.particles);
     }
 
     togglePlayPause():boolean{

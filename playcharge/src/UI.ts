@@ -77,7 +77,7 @@ class UI {
         this.resetBtn.classList.add("btn");
         this.resetBtn.setAttribute("title","Reset");
         this.resetBtn.addEventListener("click",function(e){
-            world.resetWorld();
+            world.load();
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";
             this.classList.add("disabled");
@@ -130,7 +130,7 @@ class UI {
                 deleteBtn.addEventListener("click",function(){
                     world.removeParticleById(p.getId());
                     world.calculatePhysics();
-                    world.saveCurrentParticles();
+                    world.save();
                     u.initInfo();
                 });
 
@@ -291,9 +291,10 @@ class UI {
 
                 let inputs = pInfo.getElementsByTagName("input");
 
+                // changing inputs
                 for(let i = 0; i < inputs.length; i++){
                     inputs[i].addEventListener("change",function(){
-                        world.calculatePhysics(); world.saveCurrentParticles();
+                        world.calculatePhysics(); world.save();
                     })
                 }
 
@@ -319,6 +320,7 @@ class UI {
         let d = this.debug;
         d.innerHTML = "fps:"+fps+"<br>";
         d.innerHTML += "cursorPosition: ["+world.cursorPosition[0]+","+world.cursorPosition[1]+"]<br>";
+        d.innerHTML += "drawingOffset: ["+world.drawingOffset[0]+","+world.drawingOffset[1]+"]<br>";
         d.innerHTML += "shiftPress: "+world.shiftPress+"<br>";
         d.innerHTML += "dragging: "+world.dragging+"<br>";
     }

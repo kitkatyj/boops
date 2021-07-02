@@ -59,7 +59,7 @@ function init(){
     });
     document.addEventListener("mouseup",function(e){
         if(world.dragging) {
-            world.saveCurrentParticles();
+            world.save();
             ui.hideUI(false);
             ui.initInfo();
         }
@@ -107,12 +107,18 @@ function particleDragged(){
             canvas.style.cursor = "grabbing";
             p.position[0] = world.cursorPosition[0] - p.dragOffset[0];
             p.position[1] = world.cursorPosition[1] - p.dragOffset[1];
-            p.positionInputs[0].value = p.position[0].toString();
-            p.positionInputs[1].value = p.position[1].toString();
-            p.velocityInputs[0].value = p.velocity[0].toString();
-            p.velocityInputs[1].value = p.velocity[1].toString();
-            p.accelerationInputs[0].value = p.acceleration[0].toString();
-            p.accelerationInputs[1].value = p.acceleration[1].toString();
+            if(p.positionInputs){
+                p.positionInputs[0].value = p.position[0].toString();
+                p.positionInputs[1].value = p.position[1].toString();
+            }
+            if(p.velocityInputs){
+                p.velocityInputs[0].value = p.velocity[0].toString();
+                p.velocityInputs[1].value = p.velocity[1].toString();
+            }
+            if(p.accelerationInputs){
+                p.accelerationInputs[0].value = p.acceleration[0].toString();
+                p.accelerationInputs[1].value = p.acceleration[1].toString();
+            }
         }
     });
 }
@@ -132,6 +138,7 @@ function canvasSizeReset(){
     world.drawingOffset = [canvas.width/2,canvas.height/2];
     canvas.style.width = "100vw";
     canvas.style.height = "100vh";
+    world.save();
 }
 
 function paintBg(color:string){

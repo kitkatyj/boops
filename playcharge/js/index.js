@@ -108,7 +108,7 @@ var UI = (function () {
         this.resetBtn.classList.add("btn");
         this.resetBtn.setAttribute("title", "Reset");
         this.resetBtn.addEventListener("click", function (e) {
-            world.resetWorld();
+            world.load();
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";
             this.classList.add("disabled");
@@ -149,7 +149,7 @@ var UI = (function () {
                 deleteBtn.addEventListener("click", function () {
                     world.removeParticleById(p.getId());
                     world.calculatePhysics();
-                    world.saveCurrentParticles();
+                    world.save();
                     u.initInfo();
                 });
                 titleBar.appendChild(colorCircle);
@@ -270,7 +270,7 @@ var UI = (function () {
                 for (var i = 0; i < inputs.length; i++) {
                     inputs[i].addEventListener("change", function () {
                         world.calculatePhysics();
-                        world.saveCurrentParticles();
+                        world.save();
                     });
                 }
                 u.particleInfo.appendChild(pInfo);
@@ -293,6 +293,7 @@ var UI = (function () {
         var d = this.debug;
         d.innerHTML = "fps:" + fps + "<br>";
         d.innerHTML += "cursorPosition: [" + world.cursorPosition[0] + "," + world.cursorPosition[1] + "]<br>";
+        d.innerHTML += "drawingOffset: [" + world.drawingOffset[0] + "," + world.drawingOffset[1] + "]<br>";
         d.innerHTML += "shiftPress: " + world.shiftPress + "<br>";
         d.innerHTML += "dragging: " + world.dragging + "<br>";
     };
@@ -309,7 +310,6 @@ var World = (function () {
         this.cameraPosition = [0, 0];
         this.scale = 10;
         this.drawingOffset = [0, 0];
-        this.savedParticles = [];
         this.particles = [];
         this.c_constant = 1;
         this.paused = true;
@@ -317,14 +317,20 @@ var World = (function () {
         this.cursorPosition = [0, 0];
         this.dragging = false;
         this.shiftPress = false;
-        var defaultP1 = new Particle(1, 2, [-15.5, 0.4]);
-        var defaultP2 = new Particle(1, 1, [13.8, -12.5]);
-        var defaultP3 = new Particle(-1, 1, [-3.4, 0.9]);
-        this.addParticle(defaultP1);
-        this.addParticle(defaultP2);
-        this.addParticle(defaultP3);
-        this.calculatePhysics();
-        this.saveCurrentParticles();
+        var wTemp = JSON.parse(localStorage.getItem("world"));
+        if (wTemp) {
+            this.load();
+        }
+        else {
+            var defaultP1 = new Particle(1, 2, [-15.5, 0.4], '#00EAD3');
+            var defaultP2 = new Particle(1, 1, [13.8, -12.5], '#FF449F');
+            var defaultP3 = new Particle(-1, 1, [-3.4, 0.9], '#005F99');
+            this.addParticle(defaultP1);
+            this.addParticle(defaultP2);
+            this.addParticle(defaultP3);
+            this.calculatePhysics();
+        }
+        this.save();
     }
     World.prototype.draw = function (ctx) {
         var w = this;
@@ -395,24 +401,30 @@ var World = (function () {
             index--;
         }
     };
-    World.prototype.resetWorld = function () {
+    World.prototype.translateParticles = function (savedParticles) {
         var w = this;
         this.particles = [];
-        JSON.parse(JSON.stringify(this.savedParticles)).forEach(function (p) {
+        JSON.parse(JSON.stringify(savedParticles)).forEach(function (p) {
             var newP = new Particle(p.charge, p.mass, p.position, p.color, p.velocity, p.acceleration);
             newP.setId(p.id);
             w.particles.push(newP);
         });
     };
     ;
-    World.prototype.saveCurrentParticles = function () {
-        var w = this;
-        this.savedParticles = [];
-        JSON.parse(JSON.stringify(this.particles)).forEach(function (p) {
-            var newP = new Particle(p.charge, p.mass, p.position, p.color, p.velocity, p.acceleration);
-            newP.setId(p.id);
-            w.savedParticles.push(newP);
-        });
+    World.prototype.save = function () {
+        localStorage.setItem("world", JSON.stringify(this));
+    };
+    World.prototype.load = function () {
+        var wTemp = JSON.parse(localStorage.getItem("world"));
+        this.arrowScale = wTemp.arrowScale;
+        this.c_constant = wTemp.c_constant;
+        this.cameraPosition = wTemp.cameraPosition;
+        this.dragging = false;
+        this.drawingOffset = wTemp.drawingOffset;
+        this.paused = true;
+        this.scale = wTemp.scale;
+        this.shiftPress = false;
+        this.translateParticles(wTemp.particles);
     };
     World.prototype.togglePlayPause = function () {
         this.paused = !this.paused;
@@ -467,7 +479,7 @@ function init() {
     });
     document.addEventListener("mouseup", function (e) {
         if (world.dragging) {
-            world.saveCurrentParticles();
+            world.save();
             ui.hideUI(false);
             ui.initInfo();
         }
@@ -506,12 +518,18 @@ function particleDragged() {
             canvas.style.cursor = "grabbing";
             p.position[0] = world.cursorPosition[0] - p.dragOffset[0];
             p.position[1] = world.cursorPosition[1] - p.dragOffset[1];
-            p.positionInputs[0].value = p.position[0].toString();
-            p.positionInputs[1].value = p.position[1].toString();
-            p.velocityInputs[0].value = p.velocity[0].toString();
-            p.velocityInputs[1].value = p.velocity[1].toString();
-            p.accelerationInputs[0].value = p.acceleration[0].toString();
-            p.accelerationInputs[1].value = p.acceleration[1].toString();
+            if (p.positionInputs) {
+                p.positionInputs[0].value = p.position[0].toString();
+                p.positionInputs[1].value = p.position[1].toString();
+            }
+            if (p.velocityInputs) {
+                p.velocityInputs[0].value = p.velocity[0].toString();
+                p.velocityInputs[1].value = p.velocity[1].toString();
+            }
+            if (p.accelerationInputs) {
+                p.accelerationInputs[0].value = p.acceleration[0].toString();
+                p.accelerationInputs[1].value = p.acceleration[1].toString();
+            }
         }
     });
 }
@@ -529,6 +547,7 @@ function canvasSizeReset() {
     world.drawingOffset = [canvas.width / 2, canvas.height / 2];
     canvas.style.width = "100vw";
     canvas.style.height = "100vh";
+    world.save();
 }
 function paintBg(color) {
     ctx.beginPath();
