@@ -1,0 +1,11 @@
+POSSIBLE UNDO ACTIONS
+
+- PARTICLE
+    - add
+    - remove
+    - move
+    - property change
+
+- WORLD
+    - camera move
+    - play

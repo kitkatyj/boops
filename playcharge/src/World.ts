@@ -9,10 +9,11 @@ class World {
     cursorPosition: number[] = [0,0];
     dragging: boolean = false;
     shiftPress: boolean = false;
+    dragOffset: number[] = [0,0];
 
     constructor(){
         // localStorage check
-        let wTemp = JSON.parse(localStorage.getItem("world"));
+        let wTemp = localStorage.getItem("world");
         if(wTemp){
             this.load();
         } else {
@@ -26,15 +27,15 @@ class World {
     
             this.calculatePhysics();
         }
-        
+
         this.save();
     }
 
     draw(ctx:CanvasRenderingContext2D){
         let w = this;
         this.particles.forEach(function(p){
-            let drawFromX = p.position[0]* w.scale + w.drawingOffset[0];
-            let drawFromY = p.position[1]* -w.scale + w.drawingOffset[1];
+            let drawFromX = (p.position[0] + w.cameraPosition[0])* w.scale + w.drawingOffset[0] ;
+            let drawFromY = (p.position[1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1];
             let drawToX = drawFromX + p.acceleration[0] * w.scale * w.arrowScale * p.mass;
             let drawToY = drawFromY + p.acceleration[1] * -w.scale * w.arrowScale * p.mass;
             

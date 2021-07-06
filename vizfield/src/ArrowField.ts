@@ -99,6 +99,7 @@ class ArrowField {
             z:Math.cos(phi)
         };
 
+        // Wire segment dL
         let dL = {x:0, y:0, z:0};
         switch(wireAxis){
             case 'x': dL.x = 1; break;
@@ -106,7 +107,9 @@ class ArrowField {
             case 'z': dL.z = 1; break;
         }
 
+        // Cross product of wire dL and rHat
         let crossResult = this.crossProduct(dL.x,dL.y,dL.z, rHat.x,rHat.y,rHat.z);
+        // Standard calculation for magnitude
         let strengthResult = this.kConstant * current / (distance * distance);
 
         return {

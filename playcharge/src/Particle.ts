@@ -32,8 +32,8 @@ class Particle {
         this.trail.forEach(function(t){
             ctx.beginPath();
             ctx.arc(
-                t[0]*w.scale + w.drawingOffset[0],
-                t[1]* -w.scale + w.drawingOffset[1],
+                (t[0] + w.cameraPosition[0])*w.scale + w.drawingOffset[0],
+                (t[1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1],
                 1, 0, 2 * Math.PI
             );
             ctx.fillStyle = p.color;
@@ -42,8 +42,8 @@ class Particle {
         });
         ctx.beginPath();
         ctx.arc(
-            this.position[0]*w.scale + w.drawingOffset[0], 
-            this.position[1]* -w.scale + w.drawingOffset[1], 
+            (this.position[0] + w.cameraPosition[0])*w.scale + w.drawingOffset[0], 
+            (this.position[1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1], 
             this.mass*w.scale, 
             0, 2 * Math.PI);
         ctx.fillStyle = this.color;

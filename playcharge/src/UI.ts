@@ -9,9 +9,18 @@ class UI {
     debug:HTMLDivElement;
     addParticleBtn:HTMLAnchorElement;
 
+    UIconfig = {
+        debugVisible:false
+    }
+
     constructor(mainBody:HTMLBodyElement){
+        let uTemp = localStorage.getItem("UIconfig");
+        if(uTemp){
+            this.UIconfig = JSON.parse(localStorage.getItem("UIconfig"));
+        }
+
         let u = this;
-        this.mainMenu = document.createElement("div");
+        // this.mainMenu = document.createElement("div");
         this.particleMenu = document.createElement("div");
         this.particleInfo = document.createElement("div");
         this.controlPanel = document.createElement("div");
@@ -21,9 +30,24 @@ class UI {
         this.debug = document.createElement("div");
         this.addParticleBtn = document.createElement("a");
 
-        this.mainMenu.setAttribute("id","main_menu");
-        this.mainMenu.classList.add("ui");
+        // MAIN MENU (top left)
+        // let mmenu_icon = document.createElement("a");
+        // mmenu_icon.textContent = "Menu";
 
+        // let mmenu_list = document.createElement("ul");
+        // let mmenu_reset = document.createElement("a");
+
+        // this.mainMenu.setAttribute("id","main_menu");
+        // this.mainMenu.classList.add("ui");
+        // mainBody.appendChild(this.mainMenu);
+
+        // DEBUG (top right)
+        this.debug.setAttribute("id","debug");
+        this.debug.classList.add("ui");
+        if(!this.UIconfig.debugVisible) this.debug.classList.add("hidden");
+        mainBody.appendChild(this.debug);
+
+        // PARTICLE MENU (bottom right)
         this.particleMenu.setAttribute("id","particle_menu");
         this.particleMenu.classList.add("ui");
 
@@ -41,6 +65,11 @@ class UI {
 
         this.particleInfo.setAttribute("id","particle_info");
 
+        this.particleMenu.appendChild(this.addParticleBtn);
+        this.particleMenu.appendChild(this.particleInfo);
+        mainBody.appendChild(this.particleMenu);
+
+        // CONTROLS (bottom right)
         this.controlPanel.setAttribute("id","ctrls");
         this.controlPanel.classList.add("ui");
 
@@ -87,19 +116,16 @@ class UI {
         });
         this.resetBtn.classList.add("disabled");
         
-        this.debug.setAttribute("id","debug");
-
-        mainBody.appendChild(this.mainMenu);
-        this.mainMenu.appendChild(this.debug);
-
-        mainBody.appendChild(this.particleMenu);
-        this.particleMenu.appendChild(this.addParticleBtn);
-        this.particleMenu.appendChild(this.particleInfo);
-
-        mainBody.appendChild(this.controlPanel);
         this.controlPanel.appendChild(this.playPauseBtn);
         this.controlPanel.appendChild(this.stepForwardBtn);
         this.controlPanel.appendChild(this.resetBtn);
+        mainBody.appendChild(this.controlPanel);
+    }
+
+    toggleDebug(){
+        this.UIconfig.debugVisible = !this.UIconfig.debugVisible;
+        this.debug.classList.toggle("hidden");
+        localStorage.setItem("UIconfig",JSON.stringify(this.UIconfig));
     }
 
     initInfo(){
@@ -329,7 +355,10 @@ class UI {
     hideUI(hide:boolean){
         let uiElements = document.getElementsByClassName("ui");
         for(let i = 0; i < uiElements.length; i++){
-            (hide) ? uiElements[i].classList.add("hidden") : uiElements[i].classList.remove("hidden");
+            // select all elements that is not debug
+            if(uiElements[i].getAttribute("id") != "debug"){
+                (hide) ? uiElements[i].classList.add("hidden") : uiElements[i].classList.remove("hidden");
+            }
         }
     }
 }

@@ -26,13 +26,13 @@ var Particle = (function () {
         var p = this;
         this.trail.forEach(function (t) {
             ctx.beginPath();
-            ctx.arc(t[0] * w.scale + w.drawingOffset[0], t[1] * -w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
+            ctx.arc((t[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (t[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
             ctx.fillStyle = p.color;
             ctx.fill();
             ctx.closePath();
         });
         ctx.beginPath();
-        ctx.arc(this.position[0] * w.scale + w.drawingOffset[0], this.position[1] * -w.scale + w.drawingOffset[1], this.mass * w.scale, 0, 2 * Math.PI);
+        ctx.arc((this.position[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (this.position[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], this.mass * w.scale, 0, 2 * Math.PI);
         ctx.fillStyle = this.color;
         ctx.fill();
         if (this.selected) {
@@ -48,8 +48,14 @@ var Particle = (function () {
 }());
 var UI = (function () {
     function UI(mainBody) {
+        this.UIconfig = {
+            debugVisible: false
+        };
+        var uTemp = localStorage.getItem("UIconfig");
+        if (uTemp) {
+            this.UIconfig = JSON.parse(localStorage.getItem("UIconfig"));
+        }
         var u = this;
-        this.mainMenu = document.createElement("div");
         this.particleMenu = document.createElement("div");
         this.particleInfo = document.createElement("div");
         this.controlPanel = document.createElement("div");
@@ -58,8 +64,11 @@ var UI = (function () {
         this.resetBtn = document.createElement("a");
         this.debug = document.createElement("div");
         this.addParticleBtn = document.createElement("a");
-        this.mainMenu.setAttribute("id", "main_menu");
-        this.mainMenu.classList.add("ui");
+        this.debug.setAttribute("id", "debug");
+        this.debug.classList.add("ui");
+        if (!this.UIconfig.debugVisible)
+            this.debug.classList.add("hidden");
+        mainBody.appendChild(this.debug);
         this.particleMenu.setAttribute("id", "particle_menu");
         this.particleMenu.classList.add("ui");
         this.addParticleBtn.setAttribute("id", "add_particle");
@@ -74,6 +83,9 @@ var UI = (function () {
             u.hideUI(true);
         });
         this.particleInfo.setAttribute("id", "particle_info");
+        this.particleMenu.appendChild(this.addParticleBtn);
+        this.particleMenu.appendChild(this.particleInfo);
+        mainBody.appendChild(this.particleMenu);
         this.controlPanel.setAttribute("id", "ctrls");
         this.controlPanel.classList.add("ui");
         this.playPauseBtn.setAttribute("id", "play_pause");
@@ -117,17 +129,16 @@ var UI = (function () {
             u.initInfo();
         });
         this.resetBtn.classList.add("disabled");
-        this.debug.setAttribute("id", "debug");
-        mainBody.appendChild(this.mainMenu);
-        this.mainMenu.appendChild(this.debug);
-        mainBody.appendChild(this.particleMenu);
-        this.particleMenu.appendChild(this.addParticleBtn);
-        this.particleMenu.appendChild(this.particleInfo);
-        mainBody.appendChild(this.controlPanel);
         this.controlPanel.appendChild(this.playPauseBtn);
         this.controlPanel.appendChild(this.stepForwardBtn);
         this.controlPanel.appendChild(this.resetBtn);
+        mainBody.appendChild(this.controlPanel);
     }
+    UI.prototype.toggleDebug = function () {
+        this.UIconfig.debugVisible = !this.UIconfig.debugVisible;
+        this.debug.classList.toggle("hidden");
+        localStorage.setItem("UIconfig", JSON.stringify(this.UIconfig));
+    };
     UI.prototype.initInfo = function () {
         var u = this;
         u.particleInfo.innerHTML = '';
@@ -301,7 +312,9 @@ var UI = (function () {
     UI.prototype.hideUI = function (hide) {
         var uiElements = document.getElementsByClassName("ui");
         for (var i = 0; i < uiElements.length; i++) {
-            (hide) ? uiElements[i].classList.add("hidden") : uiElements[i].classList.remove("hidden");
+            if (uiElements[i].getAttribute("id") != "debug") {
+                (hide) ? uiElements[i].classList.add("hidden") : uiElements[i].classList.remove("hidden");
+            }
         }
     };
     return UI;
@@ -318,7 +331,8 @@ var World = (function () {
         this.cursorPosition = [0, 0];
         this.dragging = false;
         this.shiftPress = false;
-        var wTemp = JSON.parse(localStorage.getItem("world"));
+        this.dragOffset = [0, 0];
+        var wTemp = localStorage.getItem("world");
         if (wTemp) {
             this.load();
         }
@@ -336,8 +350,8 @@ var World = (function () {
     World.prototype.draw = function (ctx) {
         var w = this;
         this.particles.forEach(function (p) {
-            var drawFromX = p.position[0] * w.scale + w.drawingOffset[0];
-            var drawFromY = p.position[1] * -w.scale + w.drawingOffset[1];
+            var drawFromX = (p.position[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0];
+            var drawFromY = (p.position[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1];
             var drawToX = drawFromX + p.acceleration[0] * w.scale * w.arrowScale * p.mass;
             var drawToY = drawFromY + p.acceleration[1] * -w.scale * w.arrowScale * p.mass;
             p.draw(ctx, w);
@@ -464,13 +478,13 @@ function init() {
     canvas.addEventListener("mousedown", function (e) {
         var particleSelected = false;
         world.getParticles().forEach(function (p) {
-            var drawFromX = p.position[0] * world.scale + world.drawingOffset[0];
-            var drawFromY = p.position[1] * -world.scale + world.drawingOffset[1];
+            var drawFromX = (p.position[0] + world.cameraPosition[0]) * world.scale + world.drawingOffset[0];
+            var drawFromY = (p.position[1] + world.cameraPosition[1]) * -world.scale + world.drawingOffset[1];
             if ((pythagoras(drawFromX - e.clientX, drawFromY - e.clientY) < p.mass * world.scale) ||
                 (p.selected && world.shiftPress)) {
                 p.selected = p.mouseDown = true;
-                p.dragOffset[0] = world.cursorPosition[0] - p.position[0];
-                p.dragOffset[1] = world.cursorPosition[1] - p.position[1];
+                p.dragOffset[0] = world.cursorPosition[0] - p.position[0] - world.cameraPosition[0];
+                p.dragOffset[1] = world.cursorPosition[1] - p.position[1] - world.cameraPosition[1];
                 document.addEventListener("mousemove", particleDragged);
                 particleSelected = true;
             }
@@ -480,6 +494,8 @@ function init() {
         });
         ui.initInfo();
         if (!particleSelected) {
+            world.dragOffset[0] = world.cursorPosition[0] - world.cameraPosition[0];
+            world.dragOffset[1] = world.cursorPosition[1] - world.cameraPosition[1];
             document.addEventListener("mousemove", backgroundDragged);
         }
     });
@@ -519,7 +535,8 @@ function draw() {
 }
 function backgroundDragged() {
     world.dragging = true;
-    canvas.style.cursor = "grabbing";
+    world.cameraPosition[0] = parseFloat((world.cursorPosition[0] - world.dragOffset[0]).toFixed(1));
+    world.cameraPosition[1] = parseFloat((world.cursorPosition[1] - world.dragOffset[1]).toFixed(1));
 }
 function particleDragged() {
     world.dragging = true;
@@ -527,11 +544,11 @@ function particleDragged() {
     world.getParticles().forEach(function (p) {
         if (p.mouseDown) {
             canvas.style.cursor = "grabbing";
-            p.position[0] = parseFloat((world.cursorPosition[0] - p.dragOffset[0]).toFixed(1));
-            p.position[1] = parseFloat((world.cursorPosition[1] - p.dragOffset[1]).toFixed(1));
+            p.position[0] = parseFloat((world.cursorPosition[0] - p.dragOffset[0] - world.cameraPosition[0]).toFixed(1));
+            p.position[1] = parseFloat((world.cursorPosition[1] - p.dragOffset[1] - world.cameraPosition[1]).toFixed(1));
             if (p.positionInputs) {
-                p.positionInputs[0].value = (world.cursorPosition[0] - p.dragOffset[0]).toFixed(1);
-                p.positionInputs[1].value = (world.cursorPosition[1] - p.dragOffset[1]).toFixed(1);
+                p.positionInputs[0].value = (world.cursorPosition[0] - p.dragOffset[0] - world.cameraPosition[0]).toFixed(1);
+                p.positionInputs[1].value = (world.cursorPosition[1] - p.dragOffset[1] - world.cameraPosition[1]).toFixed(1);
             }
             if (p.velocityInputs) {
                 p.velocityInputs[0].value = p.velocity[0].toString();
@@ -594,5 +611,16 @@ function coloumbsLaw(charge1, charge2, distance) {
 }
 function pythagoras(x, y) {
     return Math.sqrt(x * x + y * y);
+}
+function reset() {
+    localStorage.clear();
+    location.reload();
+}
+function toggleDebug() {
+    ui.toggleDebug();
+    toggleMenu();
+}
+function toggleMenu() {
+    document.getElementById("main_menu").classList.toggle("closed");
 }
 window.onload = init;

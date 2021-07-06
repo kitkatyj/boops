@@ -40,8 +40,8 @@ function init(){
     canvas.addEventListener("mousedown",function(e){
         let particleSelected:boolean = false;
         world.getParticles().forEach(function(p){
-            let drawFromX = p.position[0]* world.scale + world.drawingOffset[0];
-            let drawFromY = p.position[1]* -world.scale + world.drawingOffset[1];
+            let drawFromX = (p.position[0] + world.cameraPosition[0])* world.scale + world.drawingOffset[0];
+            let drawFromY = (p.position[1] + world.cameraPosition[1])* -world.scale + world.drawingOffset[1];
             if(
                 // select within region if it's not already selected, if it is, deselect it.
                 (pythagoras(drawFromX - e.clientX, drawFromY - e.clientY) < p.mass* world.scale) ||
@@ -49,8 +49,8 @@ function init(){
                 (p.selected && world.shiftPress)
             ){
                 p.selected = p.mouseDown = true;
-                p.dragOffset[0] = world.cursorPosition[0] - p.position[0];
-                p.dragOffset[1] = world.cursorPosition[1] - p.position[1];
+                p.dragOffset[0] = world.cursorPosition[0] - p.position[0] - world.cameraPosition[0];
+                p.dragOffset[1] = world.cursorPosition[1] - p.position[1] - world.cameraPosition[1];
                 document.addEventListener("mousemove",particleDragged);
                 particleSelected = true;
             } else {
@@ -61,6 +61,8 @@ function init(){
 
         if(!particleSelected){
             // Background drag!
+            world.dragOffset[0] = world.cursorPosition[0] - world.cameraPosition[0];
+            world.dragOffset[1] = world.cursorPosition[1] - world.cameraPosition[1];
             document.addEventListener("mousemove",backgroundDragged);
         }
     });
@@ -109,7 +111,9 @@ function draw(){
 
 function backgroundDragged(){
     world.dragging = true;
-    canvas.style.cursor = "grabbing";
+
+    world.cameraPosition[0] = parseFloat((world.cursorPosition[0] - world.dragOffset[0]).toFixed(1));
+    world.cameraPosition[1] = parseFloat((world.cursorPosition[1] - world.dragOffset[1]).toFixed(1));
 }
 
 function particleDragged(){
@@ -118,11 +122,11 @@ function particleDragged(){
     world.getParticles().forEach(function(p){
         if(p.mouseDown){
             canvas.style.cursor = "grabbing";
-            p.position[0] = parseFloat((world.cursorPosition[0] - p.dragOffset[0]).toFixed(1));
-            p.position[1] = parseFloat((world.cursorPosition[1] - p.dragOffset[1]).toFixed(1));
+            p.position[0] = parseFloat((world.cursorPosition[0] - p.dragOffset[0] - world.cameraPosition[0]).toFixed(1));
+            p.position[1] = parseFloat((world.cursorPosition[1] - p.dragOffset[1] - world.cameraPosition[1]).toFixed(1));
             if(p.positionInputs){
-                p.positionInputs[0].value = (world.cursorPosition[0] - p.dragOffset[0]).toFixed(1);
-                p.positionInputs[1].value = (world.cursorPosition[1] - p.dragOffset[1]).toFixed(1);
+                p.positionInputs[0].value = (world.cursorPosition[0] - p.dragOffset[0] - world.cameraPosition[0]).toFixed(1);
+                p.positionInputs[1].value = (world.cursorPosition[1] - p.dragOffset[1] - world.cameraPosition[1]).toFixed(1);
             }
             if(p.velocityInputs){
                 p.velocityInputs[0].value = p.velocity[0].toString();
@@ -202,6 +206,19 @@ function coloumbsLaw(charge1:number,charge2:number,distance:number):number{
 
 function pythagoras(x:number, y:number){
     return Math.sqrt(x*x + y*y);
+}
+
+function reset(){
+    localStorage.clear();
+    location.reload();
+}
+
+function toggleDebug(){
+    ui.toggleDebug(); toggleMenu();
+}
+
+function toggleMenu(){
+    document.getElementById("main_menu").classList.toggle("closed");
 }
 
 window.onload = init;

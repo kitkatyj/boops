@@ -24,11 +24,32 @@ body {
 
 #main_menu {
     top:0; left:0;
+    display: flex;
+    flex-direction: column;
 }
 
-/* #debug {
+#main_menu ul {
+    list-style: none;
+    margin:0; padding:0;
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 0.5em;
+}
+#main_menu.closed ul {
+    display:none;
+}
+#main_menu ul li a {
+    display: block;
+    padding:0.5em 1em;
+    cursor: pointer;
+}
+#main_menu ul li a:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+#debug {
     top:0; right:0;
-} */
+    width:240px;
+}
 
 #particle_menu {
     right:0; bottom:0;
@@ -128,6 +149,7 @@ body {
 #step                               {background-image: url("../media/step-forward.svg");}
 #reset                              {background-image: url("../media/redo-alt.svg");}
 #add_particle                       {background-image: url("../media/plus.svg");}
+#mmenu_icon                         {background-image: url("../media/bars.svg");}
 .delete_particle                    {
     background-image: url("../media/trash-alt.svg");
 }
