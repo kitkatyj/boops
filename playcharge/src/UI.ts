@@ -142,8 +142,15 @@ class UI {
                 let titleBar = document.createElement("p");
                 titleBar.classList.add("particle_titlebar");
 
-                let colorCircle = document.createElement("span");
+                let colorCircle = document.createElement("input");
+                colorCircle.setAttribute("type","color");
+                colorCircle.value = p.color;
                 colorCircle.style.backgroundColor = p.color;
+                colorCircle.addEventListener("change",function(){
+                    p.color = colorCircle.value;
+                    colorCircle.style.backgroundColor = p.color;
+                });
+                colorCircle.classList.add("color-circle");
 
                 let particleTitle = document.createElement("span");
                 particleTitle.classList.add("particle_title");

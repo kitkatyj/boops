@@ -148,8 +148,15 @@ var UI = (function () {
                 pInfo.classList.add("p_info");
                 var titleBar = document.createElement("p");
                 titleBar.classList.add("particle_titlebar");
-                var colorCircle = document.createElement("span");
-                colorCircle.style.backgroundColor = p.color;
+                var colorCircle_1 = document.createElement("input");
+                colorCircle_1.setAttribute("type", "color");
+                colorCircle_1.value = p.color;
+                colorCircle_1.style.backgroundColor = p.color;
+                colorCircle_1.addEventListener("change", function () {
+                    p.color = colorCircle_1.value;
+                    colorCircle_1.style.backgroundColor = p.color;
+                });
+                colorCircle_1.classList.add("color-circle");
                 var particleTitle = document.createElement("span");
                 particleTitle.classList.add("particle_title");
                 particleTitle.textContent = "Particle " + p.getId();
@@ -163,7 +170,7 @@ var UI = (function () {
                     world.save();
                     u.initInfo();
                 });
-                titleBar.appendChild(colorCircle);
+                titleBar.appendChild(colorCircle_1);
                 titleBar.appendChild(particleTitle);
                 titleBar.appendChild(deleteBtn);
                 var line1 = document.createElement("p");
@@ -354,8 +361,11 @@ var World = (function () {
             var drawFromY = (p.position[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1];
             var drawToX = drawFromX + p.acceleration[0] * w.scale * w.arrowScale * p.mass;
             var drawToY = drawFromY + p.acceleration[1] * -w.scale * w.arrowScale * p.mass;
+            var d = pythagoras(p.acceleration[0], p.acceleration[1]) * 50;
+            if (d >= 7.5)
+                d = 7.5;
             p.draw(ctx, w);
-            drawArrow(ctx, drawFromX, drawFromY, drawToX, drawToY, 5, 10);
+            drawArrow(ctx, drawFromX, drawFromY, drawToX, drawToY, d, d * 2);
         });
         if (!w.paused) {
             this.physicsStep();

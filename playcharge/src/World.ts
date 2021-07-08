@@ -39,8 +39,11 @@ class World {
             let drawToX = drawFromX + p.acceleration[0] * w.scale * w.arrowScale * p.mass;
             let drawToY = drawFromY + p.acceleration[1] * -w.scale * w.arrowScale * p.mass;
             
+            let d = pythagoras(p.acceleration[0], p.acceleration[1])*50;
+            if(d >= 7.5) d = 7.5;
+
             p.draw(ctx,w);
-            drawArrow(ctx,drawFromX,drawFromY,drawToX,drawToY,5,10);
+            drawArrow(ctx,drawFromX,drawFromY,drawToX,drawToY,d,d*2);
         });
 
         // play physics!
