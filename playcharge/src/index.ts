@@ -4,7 +4,8 @@ canvas: HTMLCanvasElement,
 ctx:CanvasRenderingContext2D,
 world:World,
 dragTimeout:any,
-resizeTimer:any = null;
+resizeTimer:any,
+zoomTimer:any=null;
 
 let times:number[] = [];
 
@@ -68,7 +69,7 @@ function init(){
     });
     document.addEventListener("mouseup",function(e){
         if(world.dragging) {
-            world.save();
+            if(world.paused) world.save();
             ui.hideUI(false);
             ui.initInfo();
         }
@@ -80,6 +81,20 @@ function init(){
             p.mouseDown = false;
         });
     })
+    
+    document.addEventListener("wheel",function(e){
+        let scale = e.deltaY * 0.01;
+        if(scale > 4) scale = 4; else if(scale < -4) scale = -4;
+
+        if(world.scale + scale > 1) world.scale += scale;
+
+        if(world.paused){
+            clearTimeout(zoomTimer);
+            zoomTimer = setTimeout(function(){
+                world.save();
+            },1000);
+        }
+    });
 
     ui.initInfo();
     window.requestAnimationFrame(draw);

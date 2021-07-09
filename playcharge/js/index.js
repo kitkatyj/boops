@@ -457,7 +457,7 @@ var World = (function () {
     };
     return World;
 }());
-var mainBody, ui, canvas, ctx, world, dragTimeout, resizeTimer = null;
+var mainBody, ui, canvas, ctx, world, dragTimeout, resizeTimer, zoomTimer = null;
 var times = [];
 var config = {
     fps: 0,
@@ -511,7 +511,8 @@ function init() {
     });
     document.addEventListener("mouseup", function (e) {
         if (world.dragging) {
-            world.save();
+            if (world.paused)
+                world.save();
             ui.hideUI(false);
             ui.initInfo();
         }
@@ -522,6 +523,21 @@ function init() {
         world.getParticles().forEach(function (p) {
             p.mouseDown = false;
         });
+    });
+    document.addEventListener("wheel", function (e) {
+        var scale = e.deltaY * 0.01;
+        if (scale > 4)
+            scale = 4;
+        else if (scale < -4)
+            scale = -4;
+        if (world.scale + scale > 1)
+            world.scale += scale;
+        if (world.paused) {
+            clearTimeout(zoomTimer);
+            zoomTimer = setTimeout(function () {
+                world.save();
+            }, 1000);
+        }
     });
     ui.initInfo();
     window.requestAnimationFrame(draw);
