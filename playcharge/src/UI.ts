@@ -56,6 +56,7 @@ class UI {
         this.addParticleBtn.setAttribute("title","Add Particle");
         this.addParticleBtn.classList.add("btn");
         this.addParticleBtn.addEventListener("click",function(e){
+            toggleHeader('close');
             let newP = new Particle(1,1,[0,0]);
             newP.mouseDown = true;
             world.addParticle(newP);
@@ -78,6 +79,7 @@ class UI {
         this.playPauseBtn.setAttribute("title", "Play");
         this.playPauseBtn.classList.add("btn");
         this.playPauseBtn.addEventListener("click",function(e){
+            toggleHeader('close');
             let status = "Pause";
             if(world.togglePlayPause()){
                 status = "Play";
@@ -95,6 +97,7 @@ class UI {
         this.stepForwardBtn.classList.add("btn");
         this.stepForwardBtn.setAttribute("title", "Step Forward");
         this.stepForwardBtn.addEventListener("click",function(e){
+            toggleHeader('close');
             world.physicsStep();
             u.updateParticleInfo();
             u.resetBtn.classList.remove("disabled");

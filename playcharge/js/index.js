@@ -76,6 +76,7 @@ var UI = (function () {
         this.addParticleBtn.setAttribute("title", "Add Particle");
         this.addParticleBtn.classList.add("btn");
         this.addParticleBtn.addEventListener("click", function (e) {
+            toggleHeader('close');
             var newP = new Particle(1, 1, [0, 0]);
             newP.mouseDown = true;
             world.addParticle(newP);
@@ -93,6 +94,7 @@ var UI = (function () {
         this.playPauseBtn.setAttribute("title", "Play");
         this.playPauseBtn.classList.add("btn");
         this.playPauseBtn.addEventListener("click", function (e) {
+            toggleHeader('close');
             var status = "Pause";
             if (world.togglePlayPause()) {
                 status = "Play";
@@ -110,6 +112,7 @@ var UI = (function () {
         this.stepForwardBtn.classList.add("btn");
         this.stepForwardBtn.setAttribute("title", "Step Forward");
         this.stepForwardBtn.addEventListener("click", function (e) {
+            toggleHeader('close');
             world.physicsStep();
             u.updateParticleInfo();
             u.resetBtn.classList.remove("disabled");
@@ -465,6 +468,9 @@ var config = {
 };
 function init() {
     console.log("Ready!");
+    if (localStorage.getItem("header") == "false" || localStorage.getItem("header") == null) {
+        document.getElementsByTagName("header")[0].classList.remove("closed");
+    }
     canvas = document.createElement("canvas");
     ctx = canvas.getContext('2d');
     mainBody = document.getElementsByTagName("body")[0];
@@ -486,6 +492,7 @@ function init() {
         ];
     });
     canvas.addEventListener("mousedown", function (e) {
+        toggleHeader('close');
         var particleSelected = false;
         world.getParticles().forEach(function (p) {
             var drawFromX = (p.position[0] + world.cameraPosition[0]) * world.scale + world.drawingOffset[0];
@@ -646,7 +653,23 @@ function toggleDebug() {
     ui.toggleDebug();
     toggleMenu();
 }
-function toggleMenu() {
-    document.getElementById("main_menu").classList.toggle("closed");
+function toggleMenu(setting) {
+    if (setting == 'close')
+        document.getElementById("main_menu").classList.add("closed");
+    else if (setting == 'open')
+        document.getElementById("main_menu").classList.remove("closed");
+    else
+        document.getElementById("main_menu").classList.toggle("closed");
+}
+function toggleHeader(setting) {
+    toggleMenu('close');
+    if (setting == 'close')
+        document.getElementsByTagName("header")[0].classList.add("closed");
+    else if (setting == 'open')
+        document.getElementsByTagName("header")[0].classList.remove("closed");
+    else
+        document.getElementsByTagName("header")[0].classList.toggle("closed");
+    var headerOpen = document.getElementsByTagName("header")[0].classList.contains("closed");
+    localStorage.setItem("header", String(headerOpen));
 }
 window.onload = init;

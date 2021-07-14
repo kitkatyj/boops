@@ -17,6 +17,11 @@ let config = {
 function init(){
     console.log("Ready!");
 
+    // show header about information
+    if(localStorage.getItem("header") == "false" || localStorage.getItem("header") == null){
+        document.getElementsByTagName("header")[0].classList.remove("closed");
+    }
+
     canvas = document.createElement("canvas");
     ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
     mainBody = document.getElementsByTagName("body")[0];
@@ -39,6 +44,7 @@ function init(){
         ];
     });
     canvas.addEventListener("mousedown",function(e){
+        toggleHeader('close');
         let particleSelected:boolean = false;
         world.getParticles().forEach(function(p){
             let drawFromX = (p.position[0] + world.cameraPosition[0])* world.scale + world.drawingOffset[0];
@@ -232,8 +238,26 @@ function toggleDebug(){
     ui.toggleDebug(); toggleMenu();
 }
 
-function toggleMenu(){
-    document.getElementById("main_menu").classList.toggle("closed");
+function toggleMenu(setting?:string){
+    if(setting == 'close')
+        document.getElementById("main_menu").classList.add("closed");
+    else if(setting == 'open')
+        document.getElementById("main_menu").classList.remove("closed");
+    else
+        document.getElementById("main_menu").classList.toggle("closed");
+}
+
+function toggleHeader(setting:string){
+    toggleMenu('close');
+    if(setting == 'close')
+        document.getElementsByTagName("header")[0].classList.add("closed");
+    else if(setting == 'open')
+        document.getElementsByTagName("header")[0].classList.remove("closed");
+    else
+        document.getElementsByTagName("header")[0].classList.toggle("closed");
+    
+    let headerOpen = document.getElementsByTagName("header")[0].classList.contains("closed");
+    localStorage.setItem("header", String(headerOpen));
 }
 
 window.onload = init;
