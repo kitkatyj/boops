@@ -1,6 +1,6 @@
 var Arrow = (function () {
     function Arrow(THREE, originX, originY, originZ, color, length) {
-        this.headLength = 2;
+        this.headLength = 1;
         this.headWidth = 0.6;
         this.color = color || '#ffffff';
         this.length = length || 2;
@@ -23,6 +23,7 @@ var ArrowField = (function () {
         this.kConstant = 1;
         this.maxIntensity = 0;
         this.normalizeStrength = false;
+        this.visual = 1;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
@@ -69,12 +70,18 @@ var ArrowField = (function () {
                     f.maxIntensity = newD.strength;
             });
         });
-        if (!this.normalizeStrength) {
-            this.arrows.forEach(function (a) {
+        this.arrows.forEach(function (a) {
+            if (f.visual == 1) {
+                var hueValue = Math.floor(260 - Math.log(100 * a.strength / f.maxIntensity) * 40);
+                a.arrowHelper.setColor("hsl(" + hueValue + ",100%,50%)");
+                a.arrowHelper.setLength(2, 0.8, 0.6);
+            }
+            else {
                 var newLength = Math.log(100 * a.strength / f.maxIntensity) / 2;
                 a.arrowHelper.setLength(newLength, newLength * 0.4, newLength * 0.3);
-            });
-        }
+                a.arrowHelper.setColor(a.color);
+            }
+        });
     };
     ArrowField.prototype.electricField = function (charge, xDistance, yDistance, zDistance) {
         var distance = this.pythagoras3d(xDistance, yDistance, zDistance);
@@ -168,7 +175,7 @@ var World = (function () {
         this.camera.position.y = 10;
         this.camera.position.z = 40;
         this.controls = new this.THREE.OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.autoRotate = false;
+        this.controls.autoRotate = true;
         this.pointLight = new this.THREE.PointLight(0xffffff, 1);
         this.ambientLight = new this.THREE.AmbientLight(0xffffff, 0.5);
         this.pointLight.position.x = 20;
@@ -311,20 +318,20 @@ define("index", ["require", "exports"], function (require, exports) {
             world.axis = this.value;
             world.updateParticles();
         });
-        var normalizeLabel = document.createElement("label");
-        normalizeLabel.setAttribute("for", "normalize");
-        normalizeLabel.textContent = "Normalize Strength";
-        var normalizeInput = document.createElement("input");
-        normalizeInput.setAttribute("id", "normalize");
-        normalizeInput.setAttribute("type", "checkbox");
-        normalizeInput.addEventListener("change", function () {
-            world.arrowField.normalizeStrength = this.checked;
-            world.arrowField.calculateFieldPhysics(world);
+        var scaleLabel = document.createElement("label");
+        scaleLabel.setAttribute("for", "field");
+        scaleLabel.textContent = "Field";
+        var scaleSelect = document.createElement("select");
+        scaleSelect.setAttribute("id", "field");
+        scaleSelect.innerHTML = "<option value=0>Length</option><option value=1>Color</option>";
+        scaleSelect.value = world.arrowField.visual.toString();
+        scaleSelect.addEventListener("change", function () {
+            world.arrowField.visual = parseInt(scaleSelect.value);
         });
         line1.appendChild(axisLabel);
         line1.appendChild(axisSelect);
-        line1.appendChild(normalizeLabel);
-        line1.appendChild(normalizeInput);
+        line1.appendChild(scaleLabel);
+        line1.appendChild(scaleSelect);
         var line2 = document.createElement("p");
         lengthLabel = document.createElement("label");
         lengthLabel.setAttribute("for", "length");

@@ -56,22 +56,36 @@ export function init(THREE){
         world.updateParticles();
     });
 
-    let normalizeLabel = document.createElement("label");
-    normalizeLabel.setAttribute("for","normalize");
-    normalizeLabel.textContent = "Normalize Strength";
+    let scaleLabel = document.createElement("label");
+    scaleLabel.setAttribute("for","field");
+    scaleLabel.textContent = "Field";
 
-    let normalizeInput = document.createElement("input");
-    normalizeInput.setAttribute("id","normalize");
-    normalizeInput.setAttribute("type","checkbox");
-    normalizeInput.addEventListener("change",function(){
-        world.arrowField.normalizeStrength = this.checked;
-        world.arrowField.calculateFieldPhysics(world);
+    let scaleSelect = document.createElement("select");
+    scaleSelect.setAttribute("id","field");
+    scaleSelect.innerHTML = "<option value=0>Length</option><option value=1>Color</option>";
+    scaleSelect.value = world.arrowField.visual.toString();
+    scaleSelect.addEventListener("change",function(){
+        world.arrowField.visual = parseInt(scaleSelect.value);
     });
+
+    // let normalizeLabel = document.createElement("label");
+    // normalizeLabel.setAttribute("for","normalize");
+    // normalizeLabel.textContent = "Normalize Strength";
+
+    // let normalizeInput = document.createElement("input");
+    // normalizeInput.setAttribute("id","normalize");
+    // normalizeInput.setAttribute("type","checkbox");
+    // normalizeInput.addEventListener("change",function(){
+    //     world.arrowField.normalizeStrength = this.checked;
+    //     world.arrowField.calculateFieldPhysics(world);
+    // });
 
     line1.appendChild(axisLabel);
     line1.appendChild(axisSelect);
-    line1.appendChild(normalizeLabel);
-    line1.appendChild(normalizeInput);
+    line1.appendChild(scaleLabel);
+    line1.appendChild(scaleSelect);
+    // line1.appendChild(normalizeLabel);
+    // line1.appendChild(normalizeInput);
 
     let line2 = document.createElement("p");
 

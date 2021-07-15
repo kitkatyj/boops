@@ -5,6 +5,7 @@ class ArrowField {
     kConstant:number = 1;
     maxIntensity:number = 0;
     normalizeStrength:boolean = false;
+    visual:number = 1; // 0 - size, 1 - color
     
     constructor(THREE:any,sizeX:number,sizeY:number,sizeZ:number,stepX:number,stepY:number,stepZ:number){
         this.sizeX = sizeX;
@@ -63,12 +64,20 @@ class ArrowField {
 
         // console.log(f.normalizeStrength);
         // once f.maxIntensity is done run the loop again adjust arrow length
-        if(!this.normalizeStrength){
-            this.arrows.forEach(function(a){
+        // if(!this.normalizeStrength){
+            // console.log(f.maxIntensity);
+        this.arrows.forEach(function(a){
+            if(f.visual == 1){
+                let hueValue = Math.floor(260 - Math.log(100 * a.strength / f.maxIntensity)*40);
+                a.arrowHelper.setColor("hsl("+hueValue+",100%,50%)");
+                a.arrowHelper.setLength(2,0.8,0.6);
+            }
+            else {
                 let newLength = Math.log(100 * a.strength / f.maxIntensity)/2;
                 a.arrowHelper.setLength(newLength,newLength*0.4,newLength*0.3);
-            });
-        }
+                a.arrowHelper.setColor(a.color);
+            }
+        });
     }
 
     electricField(charge:number, xDistance:number, yDistance:number, zDistance:number){

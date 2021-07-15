@@ -31,7 +31,7 @@ class World {
         this.camera.position.z = 40;
 
         this.controls = new this.THREE.OrbitControls(this.camera,this.renderer.domElement);
-        this.controls.autoRotate = false;
+        this.controls.autoRotate = true;
         this.pointLight = new this.THREE.PointLight(0xffffff,1);
         this.ambientLight = new this.THREE.AmbientLight(0xffffff,0.5);
 
