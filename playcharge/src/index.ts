@@ -92,7 +92,7 @@ function init(){
         let scale = e.deltaY * 0.01;
         if(scale > 4) scale = 4; else if(scale < -4) scale = -4;
 
-        if(world.scale + scale > 1) world.scale += scale;
+        if(world.scale - scale > 1) world.scale -= scale;
 
         if(world.paused){
             clearTimeout(zoomTimer);
@@ -232,6 +232,10 @@ function pythagoras(x:number, y:number){
 function reset(){
     localStorage.clear();
     location.reload();
+}
+
+function resetCamera(){
+    world.scale = 10; world.cameraPosition = [0,0];
 }
 
 function toggleDebug(){

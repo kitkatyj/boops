@@ -537,8 +537,8 @@ function init() {
             scale = 4;
         else if (scale < -4)
             scale = -4;
-        if (world.scale + scale > 1)
-            world.scale += scale;
+        if (world.scale - scale > 1)
+            world.scale -= scale;
         if (world.paused) {
             clearTimeout(zoomTimer);
             zoomTimer = setTimeout(function () {
@@ -648,6 +648,10 @@ function pythagoras(x, y) {
 function reset() {
     localStorage.clear();
     location.reload();
+}
+function resetCamera() {
+    world.scale = 10;
+    world.cameraPosition = [0, 0];
 }
 function toggleDebug() {
     ui.toggleDebug();
