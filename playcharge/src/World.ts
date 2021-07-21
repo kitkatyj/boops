@@ -10,6 +10,8 @@ class World {
     dragging: boolean = false;
     shiftPress: boolean = false;
     dragOffset: number[] = [0,0];
+    showTrails: boolean = true;
+    showArrows: boolean = true;
 
     constructor(){
         // localStorage check
@@ -34,16 +36,9 @@ class World {
     draw(ctx:CanvasRenderingContext2D){
         let w = this;
         this.particles.forEach(function(p){
-            let drawFromX = (p.position[0] + w.cameraPosition[0])* w.scale + w.drawingOffset[0] ;
-            let drawFromY = (p.position[1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1];
-            let drawToX = drawFromX + p.acceleration[0] * w.scale * w.arrowScale * p.mass;
-            let drawToY = drawFromY + p.acceleration[1] * -w.scale * w.arrowScale * p.mass;
             
-            let d = pythagoras(p.acceleration[0], p.acceleration[1])*50;
-            if(d >= 7.5) d = 7.5;
 
             p.draw(ctx,w);
-            drawArrow(ctx,drawFromX,drawFromY,drawToX,drawToY,d,d*2);
         });
 
         // play physics!

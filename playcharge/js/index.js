@@ -23,14 +23,15 @@ var Particle = (function () {
             this.color = color;
     }
     Particle.prototype.draw = function (ctx, w) {
-        var p = this;
-        this.trail.forEach(function (t) {
-            ctx.beginPath();
-            ctx.arc((t[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (t[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
-            ctx.fillStyle = p.color;
-            ctx.fill();
-            ctx.closePath();
-        });
+        var drawFromX = (this.position[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0];
+        var drawFromY = (this.position[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1];
+        var drawToX = drawFromX + this.acceleration[0] * w.scale * w.arrowScale * this.mass;
+        var drawToY = drawFromY + this.acceleration[1] * -w.scale * w.arrowScale * this.mass;
+        var d = pythagoras(this.acceleration[0], this.acceleration[1]) * 50;
+        if (d >= 7.5)
+            d = 7.5;
+        if (world.showTrails)
+            this.drawTrail(w);
         ctx.beginPath();
         ctx.arc((this.position[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (this.position[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], this.mass * w.scale, 0, 2 * Math.PI);
         ctx.fillStyle = this.color;
@@ -41,6 +42,41 @@ var Particle = (function () {
             ctx.stroke();
         }
         ctx.closePath();
+        if (world.showArrows)
+            this.drawArrow(ctx, drawFromX, drawFromY, drawToX, drawToY, d, d * 2);
+    };
+    Particle.prototype.drawTrail = function (w) {
+        var p = this;
+        this.trail.forEach(function (t) {
+            ctx.beginPath();
+            ctx.arc((t[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (t[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.closePath();
+        });
+    };
+    Particle.prototype.drawArrow = function (ctx, fromx, fromy, tox, toy, width, headLength) {
+        var angle = Math.atan2(toy - fromy, tox - fromx);
+        tox -= Math.cos(angle) * ((width * 1.15));
+        toy -= Math.sin(angle) * ((width * 1.15));
+        ctx.beginPath();
+        ctx.moveTo(fromx, fromy);
+        ctx.lineTo(tox, toy);
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = width;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(tox, toy);
+        ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 7), toy - headLength * Math.sin(angle - Math.PI / 7));
+        ctx.lineTo(tox - headLength * Math.cos(angle + Math.PI / 7), toy - headLength * Math.sin(angle + Math.PI / 7));
+        ctx.lineTo(tox, toy);
+        ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 7), toy - headLength * Math.sin(angle - Math.PI / 7));
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineCap = "round";
+        ctx.lineWidth = width;
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
     };
     Particle.prototype.setId = function (id) { this.id = id; };
     Particle.prototype.getId = function () { return this.id; };
@@ -342,6 +378,8 @@ var World = (function () {
         this.dragging = false;
         this.shiftPress = false;
         this.dragOffset = [0, 0];
+        this.showTrails = true;
+        this.showArrows = true;
         var wTemp = localStorage.getItem("world");
         if (wTemp) {
             this.load();
@@ -360,15 +398,7 @@ var World = (function () {
     World.prototype.draw = function (ctx) {
         var w = this;
         this.particles.forEach(function (p) {
-            var drawFromX = (p.position[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0];
-            var drawFromY = (p.position[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1];
-            var drawToX = drawFromX + p.acceleration[0] * w.scale * w.arrowScale * p.mass;
-            var drawToY = drawFromY + p.acceleration[1] * -w.scale * w.arrowScale * p.mass;
-            var d = pythagoras(p.acceleration[0], p.acceleration[1]) * 50;
-            if (d >= 7.5)
-                d = 7.5;
             p.draw(ctx, w);
-            drawArrow(ctx, drawFromX, drawFromY, drawToX, drawToY, d, d * 2);
         });
         if (!w.paused) {
             this.physicsStep();
@@ -608,35 +638,13 @@ function canvasSizeReset() {
     world.drawingOffset = [canvas.width / 2, canvas.height / 2];
     canvas.style.width = "100vw";
     canvas.style.height = "100vh";
-    world.save();
+    if (world.paused)
+        world.save();
 }
 function paintBg(color) {
     ctx.beginPath();
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = color;
-    ctx.fill();
-}
-function drawArrow(ctx, fromx, fromy, tox, toy, width, headLength) {
-    var angle = Math.atan2(toy - fromy, tox - fromx);
-    tox -= Math.cos(angle) * ((width * 1.15));
-    toy -= Math.sin(angle) * ((width * 1.15));
-    ctx.beginPath();
-    ctx.moveTo(fromx, fromy);
-    ctx.lineTo(tox, toy);
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = width;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(tox, toy);
-    ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 7), toy - headLength * Math.sin(angle - Math.PI / 7));
-    ctx.lineTo(tox - headLength * Math.cos(angle + Math.PI / 7), toy - headLength * Math.sin(angle + Math.PI / 7));
-    ctx.lineTo(tox, toy);
-    ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 7), toy - headLength * Math.sin(angle - Math.PI / 7));
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineCap = "round";
-    ctx.lineWidth = width;
-    ctx.stroke();
-    ctx.fillStyle = "#ffffff";
     ctx.fill();
 }
 function coloumbsLaw(charge1, charge2, distance) {
@@ -675,5 +683,11 @@ function toggleHeader(setting) {
         document.getElementsByTagName("header")[0].classList.toggle("closed");
     var headerOpen = document.getElementsByTagName("header")[0].classList.contains("closed");
     localStorage.setItem("header", String(headerOpen));
+}
+function toggleArrows() {
+    world.showArrows = !world.showArrows;
+}
+function toggleTrails() {
+    world.showTrails = !world.showTrails;
 }
 window.onload = init;

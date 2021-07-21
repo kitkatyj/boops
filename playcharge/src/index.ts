@@ -176,48 +176,13 @@ function canvasSizeReset(){
     world.drawingOffset = [canvas.width/2,canvas.height/2];
     canvas.style.width = "100vw";
     canvas.style.height = "100vh";
-    world.save();
+    if(world.paused) world.save();
 }
 
 function paintBg(color:string){
     ctx.beginPath();
     ctx.rect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = color;
-    ctx.fill();
-}
-
-function drawArrow(ctx:CanvasRenderingContext2D, fromx:number, fromy:number, tox:number, toy:number, width:number, headLength:number){
-    var angle = Math.atan2(toy-fromy,tox-fromx);
-    // This makes it so the end of the arrow head is located at tox, toy, don't ask where 1.15 comes from
-    tox -= Math.cos(angle) * ((width*1.15));
-    toy -= Math.sin(angle) * ((width*1.15));
-
-    //starting path of the arrow from the start square to the end square and drawing the stroke
-    ctx.beginPath();
-    ctx.moveTo(fromx, fromy);
-    ctx.lineTo(tox, toy);
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = width;
-    ctx.stroke();
-    
-    //starting a new path from the head of the arrow to one of the sides of the point
-    ctx.beginPath();
-    ctx.moveTo(tox, toy);
-    ctx.lineTo(tox-headLength*Math.cos(angle-Math.PI/7),toy-headLength*Math.sin(angle-Math.PI/7));
-    
-    //path from the side point of the arrow, to the other side point
-    ctx.lineTo(tox-headLength*Math.cos(angle+Math.PI/7),toy-headLength*Math.sin(angle+Math.PI/7));
-    
-    //path from the side point back to the tip of the arrow, and then again to the opposite side point
-    ctx.lineTo(tox, toy);
-    ctx.lineTo(tox-headLength*Math.cos(angle-Math.PI/7),toy-headLength*Math.sin(angle-Math.PI/7));
-
-    //draws the paths created above
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineCap = "round";
-    ctx.lineWidth = width;
-    ctx.stroke();
-    ctx.fillStyle = "#ffffff";
     ctx.fill();
 }
 
@@ -262,6 +227,14 @@ function toggleHeader(setting:string){
     
     let headerOpen = document.getElementsByTagName("header")[0].classList.contains("closed");
     localStorage.setItem("header", String(headerOpen));
+}
+
+function toggleArrows(){
+    world.showArrows = !world.showArrows;
+}
+
+function toggleTrails(){
+    world.showTrails = !world.showTrails;
 }
 
 window.onload = init;
