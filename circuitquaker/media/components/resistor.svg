@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 65 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-miterlimit:5;">
+    <g transform="matrix(1,0,0,1,-72,-93)">
+        <g id="resistor" transform="matrix(1,0,0,0.375,72.2311,93.4626)">
+            <rect x="0" y="0" width="64" height="64" style="fill:none;"/>
+            <clipPath id="_clip1">
+                <rect x="0" y="0" width="64" height="64"/>
+            </clipPath>
+            <g clip-path="url(#_clip1)">
+                <g transform="matrix(1.01566,0,0,4.79958,-4.88401,-101.418)">
+                    <path d="M6.826,27.798L13.811,32.543L22.812,23.402L31.814,32.142L40.816,23.425L49.818,32.086L58.82,23.082L65.782,27.798" style="fill:none;stroke:black;stroke-width:2.74px;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
