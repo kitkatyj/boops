@@ -503,7 +503,7 @@ var World = (function () {
         this.showArrows = false;
         this.pPairs = [];
         this.perapsisThreshold = 30;
-        var wTemp = localStorage.getItem("world");
+        var wTemp = localStorage.getItem("world_nbody");
         if (wTemp) {
             this.load();
         }
@@ -644,10 +644,10 @@ var World = (function () {
         });
     };
     World.prototype.save = function () {
-        localStorage.setItem("world", JSON.stringify(this));
+        localStorage.setItem("world_nbody", JSON.stringify(this));
     };
     World.prototype.load = function () {
-        var wTemp = JSON.parse(localStorage.getItem("world"));
+        var wTemp = JSON.parse(localStorage.getItem("world_nbody"));
         this.arrowScale = wTemp.arrowScale;
         this.c_constant = wTemp.c_constant;
         this.cameraPosition = wTemp.cameraPosition;

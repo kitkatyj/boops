@@ -19,7 +19,7 @@ class World {
 
     constructor(){
         // localStorage check
-        let wTemp = localStorage.getItem("world");
+        let wTemp = localStorage.getItem("world_nbody");
         if(wTemp){
             this.load();
         } else {
@@ -188,11 +188,11 @@ class World {
     }
 
     save(){
-        localStorage.setItem("world", JSON.stringify(this));
+        localStorage.setItem("world_nbody", JSON.stringify(this));
     }
 
     load(){
-        let wTemp = JSON.parse(localStorage.getItem("world"));
+        let wTemp = JSON.parse(localStorage.getItem("world_nbody"));
 
         this.arrowScale = wTemp.arrowScale;
         this.c_constant = wTemp.c_constant;
