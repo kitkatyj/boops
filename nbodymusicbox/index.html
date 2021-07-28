@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N-Body Music Box</title>
+    <link rel="stylesheet" href="css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/index.js"></script>
+</head>
+<noscript>
+    <h1>N-Body Music Box</h1>
+    <p>Please enable Javascript because you're missing out!</p>
+</noscript>
+<body>
+    <header class="closed">
+        <h1>Welcome to the N-Body Music Box</h1>
+        <img width="160" src="media/icon.svg" alt="Red and green circles with arrows pointing at each other as if they are about to collide.">
+        <p>Making music gravitationally</p>
+        <p>Read more:&nbsp;<a class="btn" target="_blank" href="https://en.wikipedia.org/wiki/N-body_problem">N-body problem</a></p>
+        <p>Copyright &copy; kitkatyj, 2021.</p>
+        <!-- <p><a class="btn" onclick="toggleHeader('close');">&times; Close</a></p> -->
+    </header>
+    <div id="main_menu" class="ui closed">
+        <a id="mmenu_icon" title="Menu" class="btn" onclick="toggleMenu();">Menu</a>
+        <ul>
+            <li><a onclick="toggleHeader('open');">About</a></li>
+            <li><a onclick="toggleDebug();">Toggle Debug</a></li>
+            <li><a onclick="toggleArrows();">Toggle Arrows</a></li>
+            <li><a onclick="toggleTrails();">Toggle Trails</a></li>
+            <li><a onclick="resetCamera();">Reset View</a></li>
+            <li><a onclick="reset();">Reset All</a></li>
+        </ul>
+    </div>
+</body>
+</html>
