@@ -91,7 +91,9 @@ class UI {
                 u.stepForwardBtn.classList.add("disabled");
                 world.pPairs.forEach((pp) => {
                     pp.osc = world.audioCtx.createOscillator();
-                    pp.worldAudioCtx = world.audioGain;
+                    pp.gainNode = world.audioCtx.createGain();
+                    pp.gainNode.connect(world.audioCtx.destination);
+                    pp.osc.connect(pp.gainNode);
                     pp.osc.frequency.value = pp.oscFreq;
                     pp.osc.start();
                 });

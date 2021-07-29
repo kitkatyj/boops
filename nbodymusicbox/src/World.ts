@@ -15,7 +15,6 @@ class World {
     pPairs: ParticlePair[] = [];
     perapsisThreshold: number = 30;
     audioCtx: AudioContext;
-    audioGain: GainNode;
 
     constructor(){
         // localStorage check
@@ -33,6 +32,7 @@ class World {
             this.addParticle(defaultP1);
             this.addParticle(defaultP2);
             this.addParticle(defaultP3);
+            this.pPairs = [];
 
             let pp1:ParticlePair = new ParticlePair(defaultP1,defaultP2,392.00);
             let pp2:ParticlePair = new ParticlePair(defaultP2,defaultP3,523.25);
@@ -66,9 +66,6 @@ class World {
 
     resetAudioContext(){
         this.audioCtx = new window.AudioContext();
-        this.audioGain = this.audioCtx.createGain();
-        this.audioGain.gain.value = 0.3;
-        this.audioGain.connect(this.audioCtx.destination);
     }
 
     addParticle(p:Particle){

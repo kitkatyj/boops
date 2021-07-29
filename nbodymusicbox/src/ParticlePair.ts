@@ -10,7 +10,7 @@ class ParticlePair {
     velocityLabel: HTMLParagraphElement;
 
     periapsis:boolean = false;
-    worldAudioCtx:GainNode;
+    gainNode:GainNode;
     osc:OscillatorNode;
     oscFreq:number = 400;
 
@@ -38,9 +38,9 @@ class ParticlePair {
             this.periapsis = true;
             this.draw();
             // play sound
-            this.osc.connect(this.worldAudioCtx);
+            this.gainNode.gain.value = 0.3;
             setTimeout(() => {
-                if(this.osc) this.osc.disconnect(this.worldAudioCtx);
+                if(this.gainNode) this.gainNode.gain.value = 0;
             },100);
         }
         this.lastV = this.velocity;

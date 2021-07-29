@@ -108,10 +108,10 @@ var ParticlePair = (function () {
         if (this.lastV <= 0 && this.velocity > 0 && this.distance < world.perapsisThreshold && !world.paused) {
             this.periapsis = true;
             this.draw();
-            this.osc.connect(this.worldAudioCtx);
+            this.gainNode.gain.value = 0.3;
             setTimeout(function () {
-                if (_this.osc)
-                    _this.osc.disconnect(_this.worldAudioCtx);
+                if (_this.gainNode)
+                    _this.gainNode.gain.value = 0;
             }, 100);
         }
         this.lastV = this.velocity;
@@ -186,7 +186,9 @@ var UI = (function () {
                 u.stepForwardBtn.classList.add("disabled");
                 world.pPairs.forEach(function (pp) {
                     pp.osc = world.audioCtx.createOscillator();
-                    pp.worldAudioCtx = world.audioGain;
+                    pp.gainNode = world.audioCtx.createGain();
+                    pp.gainNode.connect(world.audioCtx.destination);
+                    pp.osc.connect(pp.gainNode);
                     pp.osc.frequency.value = pp.oscFreq;
                     pp.osc.start();
                 });
@@ -503,6 +505,7 @@ var World = (function () {
             this.addParticle(defaultP1);
             this.addParticle(defaultP2);
             this.addParticle(defaultP3);
+            this.pPairs = [];
             var pp1 = new ParticlePair(defaultP1, defaultP2, 392.00);
             var pp2 = new ParticlePair(defaultP2, defaultP3, 523.25);
             var pp3 = new ParticlePair(defaultP1, defaultP3, 783.99);
@@ -527,9 +530,6 @@ var World = (function () {
     };
     World.prototype.resetAudioContext = function () {
         this.audioCtx = new window.AudioContext();
-        this.audioGain = this.audioCtx.createGain();
-        this.audioGain.gain.value = 0.3;
-        this.audioGain.connect(this.audioCtx.destination);
     };
     World.prototype.addParticle = function (p) {
         var id = this.particles.length;
