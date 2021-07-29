@@ -188,8 +188,10 @@ var UI = (function () {
             else {
                 u.stepForwardBtn.classList.add("disabled");
                 world.pPairs.forEach(function (pp) {
+                    pp.fade = 0;
                     pp.osc = world.audioCtx.createOscillator();
                     pp.gainNode = world.audioCtx.createGain();
+                    pp.gainNode.gain.value = 0;
                     pp.gainNode.connect(world.audioCtx.destination);
                     pp.osc.connect(pp.gainNode);
                     pp.osc.frequency.value = pp.oscFreq;
