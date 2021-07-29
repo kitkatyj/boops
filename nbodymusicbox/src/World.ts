@@ -1,16 +1,16 @@
 class World {
     cameraPosition: number[] = [0,0];
-    scale: number = 10;
+    scale: number = 8;
     drawingOffset: number[] = [0,0];
     private particles: Particle[] = [];
-    c_constant: number = 1;
+    c_constant: number = 0.5;
     paused: boolean = true;
     arrowScale: number = 25;
     cursorPosition: number[] = [0,0];
     dragging: boolean = false;
     shiftPress: boolean = false;
     dragOffset: number[] = [0,0];
-    showTrails: boolean = true;
+    showTrails: boolean = false;
     showArrows: boolean = false;
     pPairs: ParticlePair[] = [];
     perapsisThreshold: number = 30;
@@ -23,9 +23,12 @@ class World {
         if(wTemp){
             this.load();
         } else {
-            let defaultP1:Particle = new Particle(1,2,[-15.5,0.4],'#00EAD3');
-            let defaultP2:Particle = new Particle(1,1,[13.8,-12.5],'#FF449F');
-            let defaultP3:Particle = new Particle(-1,1,[-3.4,0.9],'#005F99');
+            let defaultP1:Particle = new Particle(1,[5.3638707339,0.54088605008],'#F35588');
+            let defaultP2:Particle = new Particle(1,[-2.52099126491,6.94527327749],'#A3F7BF');
+            let defaultP3:Particle = new Particle(1,[-2.75706601688,-3.35933589318],'#FFF591');
+            defaultP1.velocity = [-0.569379585581,1.255291102531];
+            defaultP2.velocity = [0.079644615252,-0.458625997341];
+            defaultP3.velocity = [0.489734970329,-0.796665105189];
     
             this.addParticle(defaultP1);
             this.addParticle(defaultP2);
@@ -133,7 +136,7 @@ class World {
                     let dist = pythagoras(xDistance, yDistance);
                     let ang = Math.atan2(xDistance,yDistance);
 
-                    let resultAcceleration = w.c_constant*coloumbsLaw(p.charge,q.charge,dist) / p.mass;
+                    let resultAcceleration = -w.c_constant*gravity(p.mass,q.mass,dist) / p.mass;
 
                     p.acceleration[0] += resultAcceleration * Math.sin(ang);
                     p.acceleration[1] += resultAcceleration * Math.cos(ang);
@@ -169,7 +172,7 @@ class World {
     translateParticles(savedParticles:Array<any>){
         let w = this; this.particles = [];
         JSON.parse(JSON.stringify(savedParticles)).forEach(function(p:any){
-            let newP = new Particle(p.charge, p.mass, p.position, p.color, p.velocity, p.acceleration);
+            let newP = new Particle(p.mass, p.position, p.color, p.velocity, p.acceleration);
             newP.setId(p.id);
             w.particles.push(newP);
         });

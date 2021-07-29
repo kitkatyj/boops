@@ -57,7 +57,7 @@ class UI {
         this.addParticleBtn.classList.add("btn");
         this.addParticleBtn.addEventListener("click",function(e){
             toggleHeader('close');
-            let newP = new Particle(1,1,[0,0]);
+            let newP = new Particle(1,[0,0]);
             newP.mouseDown = true;
             world.addParticle(newP);
             document.addEventListener("mousemove",particleDragged);
@@ -252,18 +252,6 @@ class UI {
 
                 let line1 = document.createElement("p");
 
-                let chargeLabel = document.createElement("label");
-                chargeLabel.setAttribute("for",p.getId()+"_charge");
-                chargeLabel.textContent = "Charge";
-
-                let chargeInput = document.createElement("input");
-                chargeLabel.setAttribute("id",p.getId()+"_charge");
-                chargeInput.type = "number";
-                chargeInput.value = p.charge.toString();
-                chargeInput.addEventListener("change",function(){
-                    p.charge = parseFloat(this.value);
-                });
-
                 let massLabel = document.createElement("label");
                 massLabel.setAttribute("for",p.getId()+"_mass");
                 massLabel.textContent = "Mass";
@@ -275,9 +263,7 @@ class UI {
                 massInput.addEventListener("change",function(){
                     p.mass = parseFloat(this.value);
                 });
-
-                line1.appendChild(chargeLabel);
-                line1.appendChild(chargeInput);
+                
                 line1.appendChild(massLabel);
                 line1.appendChild(massInput);
 

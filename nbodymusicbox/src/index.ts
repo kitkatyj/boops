@@ -186,8 +186,8 @@ function paintBg(color:string){
     ctx.fill();
 }
 
-function coloumbsLaw(charge1:number,charge2:number,distance:number):number{
-    return charge1*charge2/distance;
+function gravity(mass1:number,mass2:number,distance:number):number{
+    return mass1*mass2/distance;
 }
 
 function pythagoras(x:number, y:number){

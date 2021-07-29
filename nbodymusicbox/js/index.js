@@ -1,7 +1,6 @@
 var Particle = (function () {
-    function Particle(charge, mass, position, color, velocity, acceleration) {
+    function Particle(mass, position, color, velocity, acceleration) {
         this.id = "";
-        this.charge = 0;
         this.mass = 1;
         this.position = [0, 0];
         this.velocity = [0, 0];
@@ -11,7 +10,6 @@ var Particle = (function () {
         this.mouseDown = false;
         this.trail = [];
         this.dragOffset = [0, 0];
-        this.charge = charge;
         this.mass = mass;
         this.position = position;
         this.color = getRandomColor();
@@ -160,7 +158,7 @@ var UI = (function () {
         this.addParticleBtn.classList.add("btn");
         this.addParticleBtn.addEventListener("click", function (e) {
             toggleHeader('close');
-            var newP = new Particle(1, 1, [0, 0]);
+            var newP = new Particle(1, [0, 0]);
             newP.mouseDown = true;
             world.addParticle(newP);
             document.addEventListener("mousemove", particleDragged);
@@ -312,16 +310,6 @@ var UI = (function () {
                 titleBar.appendChild(particleTitle);
                 titleBar.appendChild(deleteBtn);
                 var line1 = document.createElement("p");
-                var chargeLabel = document.createElement("label");
-                chargeLabel.setAttribute("for", p.getId() + "_charge");
-                chargeLabel.textContent = "Charge";
-                var chargeInput = document.createElement("input");
-                chargeLabel.setAttribute("id", p.getId() + "_charge");
-                chargeInput.type = "number";
-                chargeInput.value = p.charge.toString();
-                chargeInput.addEventListener("change", function () {
-                    p.charge = parseFloat(this.value);
-                });
                 var massLabel = document.createElement("label");
                 massLabel.setAttribute("for", p.getId() + "_mass");
                 massLabel.textContent = "Mass";
@@ -332,8 +320,6 @@ var UI = (function () {
                 massInput.addEventListener("change", function () {
                     p.mass = parseFloat(this.value);
                 });
-                line1.appendChild(chargeLabel);
-                line1.appendChild(chargeInput);
                 line1.appendChild(massLabel);
                 line1.appendChild(massInput);
                 var line2 = document.createElement("p");
@@ -489,17 +475,17 @@ var UI = (function () {
 var World = (function () {
     function World() {
         this.cameraPosition = [0, 0];
-        this.scale = 10;
+        this.scale = 8;
         this.drawingOffset = [0, 0];
         this.particles = [];
-        this.c_constant = 1;
+        this.c_constant = 0.5;
         this.paused = true;
         this.arrowScale = 25;
         this.cursorPosition = [0, 0];
         this.dragging = false;
         this.shiftPress = false;
         this.dragOffset = [0, 0];
-        this.showTrails = true;
+        this.showTrails = false;
         this.showArrows = false;
         this.pPairs = [];
         this.perapsisThreshold = 30;
@@ -508,9 +494,12 @@ var World = (function () {
             this.load();
         }
         else {
-            var defaultP1 = new Particle(1, 2, [-15.5, 0.4], '#00EAD3');
-            var defaultP2 = new Particle(1, 1, [13.8, -12.5], '#FF449F');
-            var defaultP3 = new Particle(-1, 1, [-3.4, 0.9], '#005F99');
+            var defaultP1 = new Particle(1, [5.3638707339, 0.54088605008], '#F35588');
+            var defaultP2 = new Particle(1, [-2.52099126491, 6.94527327749], '#A3F7BF');
+            var defaultP3 = new Particle(1, [-2.75706601688, -3.35933589318], '#FFF591');
+            defaultP1.velocity = [-0.569379585581, 1.255291102531];
+            defaultP2.velocity = [0.079644615252, -0.458625997341];
+            defaultP3.velocity = [0.489734970329, -0.796665105189];
             this.addParticle(defaultP1);
             this.addParticle(defaultP2);
             this.addParticle(defaultP3);
@@ -598,7 +587,7 @@ var World = (function () {
                     var yDistance = p.position[1] - q.position[1];
                     var dist = pythagoras(xDistance, yDistance);
                     var ang = Math.atan2(xDistance, yDistance);
-                    var resultAcceleration = w.c_constant * coloumbsLaw(p.charge, q.charge, dist) / p.mass;
+                    var resultAcceleration = -w.c_constant * gravity(p.mass, q.mass, dist) / p.mass;
                     p.acceleration[0] += resultAcceleration * Math.sin(ang);
                     p.acceleration[1] += resultAcceleration * Math.cos(ang);
                 }
@@ -629,7 +618,7 @@ var World = (function () {
         var w = this;
         this.particles = [];
         JSON.parse(JSON.stringify(savedParticles)).forEach(function (p) {
-            var newP = new Particle(p.charge, p.mass, p.position, p.color, p.velocity, p.acceleration);
+            var newP = new Particle(p.mass, p.position, p.color, p.velocity, p.acceleration);
             newP.setId(p.id);
             w.particles.push(newP);
         });
@@ -822,8 +811,8 @@ function paintBg(color) {
     ctx.fillStyle = color;
     ctx.fill();
 }
-function coloumbsLaw(charge1, charge2, distance) {
-    return charge1 * charge2 / distance;
+function gravity(mass1, mass2, distance) {
+    return mass1 * mass2 / distance;
 }
 function pythagoras(x, y) {
     return Math.sqrt(x * x + y * y);

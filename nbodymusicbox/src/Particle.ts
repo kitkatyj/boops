@@ -1,6 +1,5 @@
 class Particle {
     private id: string = "";
-    charge: number = 0;
     mass: number = 1;
     position: number[] = [0,0];
     velocity: number[] = [0,0];
@@ -15,8 +14,7 @@ class Particle {
     velocityInputs: HTMLInputElement[];
     accelerationInputs: HTMLInputElement[];
 
-    constructor(charge:number,mass:number,position:number[],color?:string,velocity?:number[],acceleration?:number[]){
-        this.charge = charge;
+    constructor(mass:number,position:number[],color?:string,velocity?:number[],acceleration?:number[]){
         this.mass = mass;
         this.position = position;
         this.color = getRandomColor();
