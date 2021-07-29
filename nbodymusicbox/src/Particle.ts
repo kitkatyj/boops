@@ -117,7 +117,6 @@ class Particle {
     
         //draws the paths created above
         ctx.strokeStyle = "#ffffff";
-        ctx.lineCap = "round";
         ctx.lineWidth = width;
         ctx.stroke();
         ctx.fillStyle = "#ffffff";

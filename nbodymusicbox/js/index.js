@@ -86,7 +86,6 @@ var Particle = (function () {
         ctx.lineTo(tox, toy);
         ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 7), toy - headLength * Math.sin(angle - Math.PI / 7));
         ctx.strokeStyle = "#ffffff";
-        ctx.lineCap = "round";
         ctx.lineWidth = width;
         ctx.stroke();
         ctx.fillStyle = "#ffffff";
