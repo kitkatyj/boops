@@ -10,7 +10,9 @@ class World {
     dragging: boolean = false;
     shiftPress: boolean = false;
     dragOffset: number[] = [0,0];
-    showTrails: boolean = false;
+    showTrails: boolean = true;
+    trailStyle: number = 1; // 0 - dots, 1 - line
+    trailLength: number = 50;
     showArrows: boolean = false;
     pPairs: ParticlePair[] = [];
     perapsisThreshold: number = 30;
@@ -152,9 +154,13 @@ class World {
     }
 
     physicsStep(){
+        let w = this;
         this.calculatePhysics();
         this.particles.forEach(function(p){
             p.trail.push(JSON.parse(JSON.stringify(p.position)));
+            if(p.trail.length > w.trailLength){
+                p.trail.shift();
+            }
 
             p.velocity[0] += p.acceleration[0];
             p.velocity[1] += p.acceleration[1];

@@ -123,7 +123,7 @@ class UI {
         this.resetBtn.classList.add("btn");
         this.resetBtn.setAttribute("title","Reset");
         this.resetBtn.addEventListener("click",function(e){
-            world.resetAudioContext();
+            if(!world.paused) world.resetAudioContext();
             world.load();
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";

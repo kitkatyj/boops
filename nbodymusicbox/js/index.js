@@ -45,13 +45,29 @@ var Particle = (function () {
     };
     Particle.prototype.drawTrail = function (w) {
         var p = this;
-        this.trail.forEach(function (t) {
-            ctx.beginPath();
-            ctx.arc((t[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (t[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
-            ctx.fillStyle = p.color;
-            ctx.fill();
-            ctx.closePath();
-        });
+        if (world.trailStyle === 0) {
+            this.trail.forEach(function (t, index) {
+                ctx.beginPath();
+                ctx.arc((t[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (t[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = index / p.trail.length;
+                ctx.fill();
+                ctx.closePath();
+                ctx.globalAlpha = 1;
+            });
+        }
+        else {
+            for (var i = 1; i < this.trail.length; i++) {
+                ctx.beginPath();
+                ctx.moveTo((this.trail[i][0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (this.trail[i][1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1]);
+                ctx.lineTo((this.trail[i - 1][0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (this.trail[i - 1][1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1]);
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = w.scale;
+                ctx.globalAlpha = i / p.trail.length * 0.3;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+        }
     };
     Particle.prototype.drawArrow = function (ctx, fromx, fromy, tox, toy, width, headLength) {
         var angle = Math.atan2(toy - fromy, tox - fromx);
@@ -112,8 +128,9 @@ var ParticlePair = (function () {
         }
         if (this.lastV <= 0 && this.velocity > 0 && this.distance < world.perapsisThreshold && !world.paused) {
             this.periapsis = true;
-            this.gainNode.gain.value = 0.3;
+            this.gainNode.gain.setValueAtTime(0.3, world.audioCtx.currentTime);
             this.gainNode.gain.exponentialRampToValueAtTime(0.01, world.audioCtx.currentTime + 1);
+            this.gainNode.gain.setValueAtTime(0, world.audioCtx.currentTime + 1);
             this.fade = 1;
         }
         this.lastV = this.velocity;
@@ -220,7 +237,8 @@ var UI = (function () {
         this.resetBtn.classList.add("btn");
         this.resetBtn.setAttribute("title", "Reset");
         this.resetBtn.addEventListener("click", function (e) {
-            world.resetAudioContext();
+            if (!world.paused)
+                world.resetAudioContext();
             world.load();
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";
@@ -494,7 +512,9 @@ var World = (function () {
         this.dragging = false;
         this.shiftPress = false;
         this.dragOffset = [0, 0];
-        this.showTrails = false;
+        this.showTrails = true;
+        this.trailStyle = 1;
+        this.trailLength = 50;
         this.showArrows = false;
         this.pPairs = [];
         this.perapsisThreshold = 30;
@@ -611,9 +631,13 @@ var World = (function () {
         });
     };
     World.prototype.physicsStep = function () {
+        var w = this;
         this.calculatePhysics();
         this.particles.forEach(function (p) {
             p.trail.push(JSON.parse(JSON.stringify(p.position)));
+            if (p.trail.length > w.trailLength) {
+                p.trail.shift();
+            }
             p.velocity[0] += p.acceleration[0];
             p.velocity[1] += p.acceleration[1];
             p.position[0] += p.velocity[0];

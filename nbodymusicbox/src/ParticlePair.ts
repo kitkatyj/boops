@@ -44,9 +44,10 @@ class ParticlePair {
 
         // if the last velocity is negative and current velocity is positive and less than specified distance, mark it as periapsis.
         if(this.lastV <= 0 && this.velocity > 0 && this.distance < world.perapsisThreshold && !world.paused){
-            this.periapsis = true;
-            this.gainNode.gain.value = 0.3;
+            this.periapsis = true;            
+            this.gainNode.gain.setValueAtTime(0.3, world.audioCtx.currentTime);
             this.gainNode.gain.exponentialRampToValueAtTime(0.01, world.audioCtx.currentTime + 1);
+            this.gainNode.gain.setValueAtTime(0, world.audioCtx.currentTime + 1);
             this.fade = 1;
         }
         this.lastV = this.velocity;
