@@ -121,15 +121,14 @@ class UI {
         this.resetBtn.classList.add("btn");
         this.resetBtn.setAttribute("title","Reset");
         this.resetBtn.addEventListener("click",function(e){
+            world.resetAudioContext();
             world.load();
-            // world.generateParticlePairs();
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";
             this.classList.add("disabled");
             u.stepForwardBtn.classList.remove("disabled");
             u.updateParticleInfo();
             u.initInfo();
-            world.resetAudioContext();
         });
         this.resetBtn.classList.add("disabled");
         

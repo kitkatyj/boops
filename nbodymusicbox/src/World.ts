@@ -65,6 +65,15 @@ class World {
     }
 
     resetAudioContext(){
+        let w = this;
+        this.pPairs.forEach((pp) => {
+            pp.fade = 0;
+            if(pp.gainNode){
+                pp.gainNode.gain.value = 0;
+                pp.osc.disconnect(pp.gainNode);
+                pp.gainNode.disconnect(w.audioCtx.destination);
+            }
+        });
         this.audioCtx = new window.AudioContext();
     }
 

@@ -217,6 +217,7 @@ var UI = (function () {
         this.resetBtn.classList.add("btn");
         this.resetBtn.setAttribute("title", "Reset");
         this.resetBtn.addEventListener("click", function (e) {
+            world.resetAudioContext();
             world.load();
             world.paused = true;
             ppBtn.textContent = ppBtn.dataset.status = "Play";
@@ -224,7 +225,6 @@ var UI = (function () {
             u.stepForwardBtn.classList.remove("disabled");
             u.updateParticleInfo();
             u.initInfo();
-            world.resetAudioContext();
         });
         this.resetBtn.classList.add("disabled");
         this.controlPanel.appendChild(this.playPauseBtn);
@@ -533,6 +533,15 @@ var World = (function () {
         }
     };
     World.prototype.resetAudioContext = function () {
+        var w = this;
+        this.pPairs.forEach(function (pp) {
+            pp.fade = 0;
+            if (pp.gainNode) {
+                pp.gainNode.gain.value = 0;
+                pp.osc.disconnect(pp.gainNode);
+                pp.gainNode.disconnect(w.audioCtx.destination);
+            }
+        });
         this.audioCtx = new window.AudioContext();
     };
     World.prototype.addParticle = function (p) {
