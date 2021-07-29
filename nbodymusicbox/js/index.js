@@ -89,12 +89,13 @@ var ParticlePair = (function () {
         this.lastV = 0;
         this.periapsis = false;
         this.oscFreq = 400;
+        this.wave = 'sine';
+        this.fade = 0;
         this.particles = [p1, p2];
         if (oscFreq)
             this.oscFreq = oscFreq;
     }
     ParticlePair.prototype.update = function () {
-        var _this = this;
         this.periapsis = false;
         this.distance = pythagoras(this.particles[0].position[0] - this.particles[1].position[0], this.particles[0].position[1] - this.particles[1].position[1]);
         if (this.distanceLabel)
@@ -105,14 +106,14 @@ var ParticlePair = (function () {
             if (this.velocityLabel)
                 this.velocityLabel.innerHTML = "<span>Velocity: " + this.velocity.toFixed(2) + "</span>";
         }
+        if (this.fade > 0) {
+            this.draw();
+            this.gainNode.gain.value = 0.3 * this.fade;
+            this.fade -= 0.1;
+        }
         if (this.lastV <= 0 && this.velocity > 0 && this.distance < world.perapsisThreshold && !world.paused) {
             this.periapsis = true;
-            this.draw();
-            this.gainNode.gain.value = 0.3;
-            setTimeout(function () {
-                if (_this.gainNode)
-                    _this.gainNode.gain.value = 0;
-            }, 100);
+            this.fade = 1;
         }
         this.lastV = this.velocity;
     };
@@ -123,7 +124,9 @@ var ParticlePair = (function () {
         ctx.closePath();
         ctx.strokeStyle = "white";
         ctx.lineWidth = 3;
+        ctx.globalAlpha = this.fade;
         ctx.stroke();
+        ctx.globalAlpha = 1;
     };
     return ParticlePair;
 }());
@@ -190,6 +193,7 @@ var UI = (function () {
                     pp.gainNode.connect(world.audioCtx.destination);
                     pp.osc.connect(pp.gainNode);
                     pp.osc.frequency.value = pp.oscFreq;
+                    pp.osc.type = pp.wave;
                     pp.osc.start();
                 });
             }

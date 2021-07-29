@@ -95,6 +95,7 @@ class UI {
                     pp.gainNode.connect(world.audioCtx.destination);
                     pp.osc.connect(pp.gainNode);
                     pp.osc.frequency.value = pp.oscFreq;
+                    pp.osc.type = pp.wave;
                     pp.osc.start();
                 });
             }

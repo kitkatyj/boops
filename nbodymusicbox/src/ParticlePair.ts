@@ -13,6 +13,9 @@ class ParticlePair {
     gainNode:GainNode;
     osc:OscillatorNode;
     oscFreq:number = 400;
+    wave:OscillatorType = 'sine'; // sine, square, sawtooth, triangle
+
+    fade:number = 0;
 
     constructor(p1:Particle, p2:Particle,oscFreq?:number){
         this.particles = [p1,p2];
@@ -33,15 +36,17 @@ class ParticlePair {
             if(this.velocityLabel) this.velocityLabel.innerHTML = "<span>Velocity: "+this.velocity.toFixed(2)+"</span>";
         }
 
+        if(this.fade > 0){
+            // draw and play sound
+            this.draw();
+            this.gainNode.gain.value = 0.3 * this.fade;
+            this.fade -= 0.1;
+        }
+
         // if the last velocity is negative and current velocity is positive and less than specified distance, mark it as periapsis.
         if(this.lastV <= 0 && this.velocity > 0 && this.distance < world.perapsisThreshold && !world.paused){
             this.periapsis = true;
-            this.draw();
-            // play sound
-            this.gainNode.gain.value = 0.3;
-            setTimeout(() => {
-                if(this.gainNode) this.gainNode.gain.value = 0;
-            },100);
+            this.fade = 1;
         }
         this.lastV = this.velocity;
     }
@@ -59,6 +64,8 @@ class ParticlePair {
         ctx.closePath();
         ctx.strokeStyle = "white";
         ctx.lineWidth = 3;
+        ctx.globalAlpha = this.fade;
         ctx.stroke();
+        ctx.globalAlpha = 1;
     }
 }
