@@ -39,13 +39,14 @@ class ParticlePair {
         if(this.fade > 0){
             // draw and play sound
             this.draw();
-            this.gainNode.gain.value = 0.3 * this.fade;
             this.fade -= 0.1;
         }
 
         // if the last velocity is negative and current velocity is positive and less than specified distance, mark it as periapsis.
         if(this.lastV <= 0 && this.velocity > 0 && this.distance < world.perapsisThreshold && !world.paused){
             this.periapsis = true;
+            this.gainNode.gain.value = 0.3;
+            this.gainNode.gain.exponentialRampToValueAtTime(0.01, world.audioCtx.currentTime + 1);
             this.fade = 1;
         }
         this.lastV = this.velocity;
