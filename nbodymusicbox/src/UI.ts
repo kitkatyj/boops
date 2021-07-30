@@ -30,17 +30,6 @@ class UI {
         this.debug = document.createElement("div");
         this.addParticleBtn = document.createElement("a");
 
-        // MAIN MENU (top left)
-        // let mmenu_icon = document.createElement("a");
-        // mmenu_icon.textContent = "Menu";
-
-        // let mmenu_list = document.createElement("ul");
-        // let mmenu_reset = document.createElement("a");
-
-        // this.mainMenu.setAttribute("id","main_menu");
-        // this.mainMenu.classList.add("ui");
-        // mainBody.appendChild(this.mainMenu);
-
         // DEBUG (top right)
         this.debug.setAttribute("id","debug");
         this.debug.classList.add("ui");

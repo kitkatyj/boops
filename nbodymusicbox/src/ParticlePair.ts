@@ -46,8 +46,9 @@ class ParticlePair {
         if(this.lastV <= 0 && this.velocity > 0 && this.distance < world.perapsisThreshold && !world.paused){
             this.periapsis = true;            
             this.gainNode.gain.setValueAtTime(0.3, world.audioCtx.currentTime);
-            this.gainNode.gain.exponentialRampToValueAtTime(0.01, world.audioCtx.currentTime + 1);
-            this.gainNode.gain.setValueAtTime(0, world.audioCtx.currentTime + 1);
+            // this.gainNode.gain.exponentialRampToValueAtTime(0.3, world.audioCtx.currentTime);
+            this.gainNode.gain.setTargetAtTime(0,world.audioCtx.currentTime,0.2);
+            // this.gainNode.gain.setValueAtTime(0, world.audioCtx.currentTime + 1);
             this.fade = 1;
         }
         this.lastV = this.velocity;

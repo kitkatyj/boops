@@ -89,6 +89,7 @@ class World {
         this.refreshParticlePairs();
     }
 
+    // ADDING
     refreshParticlePairs(){
         let w = this;
         w.particles.forEach((p1) => {
@@ -178,7 +179,21 @@ class World {
             }
             index--;
         }
-        this.refreshParticlePairs();
+        this.refreshParticlePairs2();
+    }
+
+    // REMOVING
+    refreshParticlePairs2(){
+        let index = this.pPairs.length - 1;
+        while(index >= 0){
+            if(
+                this.getParticleById(this.pPairs[index].particles[0].getId()) === null || this.getParticleById(this.pPairs[index].particles[1].getId()) === null
+            ){
+                this.pPairs.splice(index, 1);
+            }
+            index--;
+        }
+        console.log(this.pPairs);
     }
 
     translateParticles(savedParticles:Array<any>){

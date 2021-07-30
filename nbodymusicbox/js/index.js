@@ -128,8 +128,7 @@ var ParticlePair = (function () {
         if (this.lastV <= 0 && this.velocity > 0 && this.distance < world.perapsisThreshold && !world.paused) {
             this.periapsis = true;
             this.gainNode.gain.setValueAtTime(0.3, world.audioCtx.currentTime);
-            this.gainNode.gain.exponentialRampToValueAtTime(0.01, world.audioCtx.currentTime + 1);
-            this.gainNode.gain.setValueAtTime(0, world.audioCtx.currentTime + 1);
+            this.gainNode.gain.setTargetAtTime(0, world.audioCtx.currentTime, 0.2);
             this.fade = 1;
         }
         this.lastV = this.velocity;
@@ -651,7 +650,17 @@ var World = (function () {
             }
             index--;
         }
-        this.refreshParticlePairs();
+        this.refreshParticlePairs2();
+    };
+    World.prototype.refreshParticlePairs2 = function () {
+        var index = this.pPairs.length - 1;
+        while (index >= 0) {
+            if (this.getParticleById(this.pPairs[index].particles[0].getId()) === null || this.getParticleById(this.pPairs[index].particles[1].getId()) === null) {
+                this.pPairs.splice(index, 1);
+            }
+            index--;
+        }
+        console.log(this.pPairs);
     };
     World.prototype.translateParticles = function (savedParticles) {
         var w = this;
