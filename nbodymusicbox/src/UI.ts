@@ -74,6 +74,7 @@ class UI {
                 // PAUSED
                 status = "Play";
                 u.stepForwardBtn.classList.remove("disabled");
+                u.addParticleBtn.classList.remove("disabled");
                 world.resetAudioContext();
             }else {
                 // PLAYING
@@ -89,6 +90,7 @@ class UI {
                     pp.osc.type = pp.wave;
                     pp.osc.start();
                 });
+                u.addParticleBtn.classList.add("disabled");
             }
             this.textContent = this.dataset.status = status;
             this.setAttribute("title", status);
@@ -118,6 +120,7 @@ class UI {
             ppBtn.textContent = ppBtn.dataset.status = "Play";
             this.classList.add("disabled");
             u.stepForwardBtn.classList.remove("disabled");
+            u.addParticleBtn.classList.remove("disabled");
             u.updateParticleInfo();
             u.initInfo();
         });
@@ -176,18 +179,26 @@ class UI {
 
         // LINE THREE
         let line3 = document.createElement("p");
-        let freqLabel = document.createElement("span");
-        freqLabel.textContent = "Frequency";
-        let freqInput = document.createElement("input");
-        freqInput.type = "number";
-        freqInput.value = pickedPP.oscFreq.toString();
-        freqInput.addEventListener("change",() => {
-            pickedPP.oscFreq = parseInt(freqInput.value);
+
+        let noteLabel = document.createElement("span");
+        noteLabel.textContent = "Note";
+        let noteInput = document.createElement("select");
+        noteInput.setAttribute("id",pickedPP.particles[0].getId()+"-"+pickedPP.particles[1].getId()+"_note");
+        noteInput.innerHTML = "";
+        for(let i = 0; i < world.notes.length; i++){
+            let noteOption = document.createElement("option");
+            noteOption.value = world.freqs[i].toString();
+            noteOption.selected = (world.freqs[i] === pickedPP.oscFreq);
+            noteOption.textContent = world.notes[i];
+            noteInput.appendChild(noteOption);
+        }
+        noteInput.addEventListener("change",() => {
+            pickedPP.oscFreq = parseFloat(noteInput.value);
             world.save();
         });
-
-        line3.appendChild(freqLabel);
-        line3.appendChild(freqInput);
+        
+        line3.appendChild(noteLabel);
+        line3.appendChild(noteInput);
 
         // FINAL APPEND
         pInfo.appendChild(titleBar);

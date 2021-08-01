@@ -150,7 +150,7 @@ header .btn:active {
     margin:0 4px;
 }
 
-#particle_info input[type="number"], #particle_info input[type="text"] {
+#particle_info input[type="number"], #particle_info input[type="text"], #particle_info select {
     font-size: 1em;
     width:4em;
     background-color:#000000;
@@ -158,6 +158,10 @@ header .btn:active {
     padding:4px;
     border:none;
     border-radius: 0.5em;
+}
+
+#particle_info select {
+    width: 6em;
 }
 
 #particle_info .pLinkList {

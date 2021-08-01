@@ -103,7 +103,7 @@ var ParticlePair = (function () {
         this.lastD = 0;
         this.lastV = 0;
         this.periapsis = false;
-        this.oscFreq = 400;
+        this.oscFreq = 392;
         this.wave = 'sine';
         this.fade = 0;
         this.particles = [p1, p2];
@@ -199,6 +199,7 @@ var UI = (function () {
             if (world.togglePlayPause()) {
                 status = "Play";
                 u.stepForwardBtn.classList.remove("disabled");
+                u.addParticleBtn.classList.remove("disabled");
                 world.resetAudioContext();
             }
             else {
@@ -214,6 +215,7 @@ var UI = (function () {
                     pp.osc.type = pp.wave;
                     pp.osc.start();
                 });
+                u.addParticleBtn.classList.add("disabled");
             }
             this.textContent = this.dataset.status = status;
             this.setAttribute("title", status);
@@ -242,6 +244,7 @@ var UI = (function () {
             ppBtn.textContent = ppBtn.dataset.status = "Play";
             this.classList.add("disabled");
             u.stepForwardBtn.classList.remove("disabled");
+            u.addParticleBtn.classList.remove("disabled");
             u.updateParticleInfo();
             u.initInfo();
         });
@@ -283,17 +286,24 @@ var UI = (function () {
         var line2 = document.createElement("p");
         pickedPP.velocityLabel = line2;
         var line3 = document.createElement("p");
-        var freqLabel = document.createElement("span");
-        freqLabel.textContent = "Frequency";
-        var freqInput = document.createElement("input");
-        freqInput.type = "number";
-        freqInput.value = pickedPP.oscFreq.toString();
-        freqInput.addEventListener("change", function () {
-            pickedPP.oscFreq = parseInt(freqInput.value);
+        var noteLabel = document.createElement("span");
+        noteLabel.textContent = "Note";
+        var noteInput = document.createElement("select");
+        noteInput.setAttribute("id", pickedPP.particles[0].getId() + "-" + pickedPP.particles[1].getId() + "_note");
+        noteInput.innerHTML = "";
+        for (var i = 0; i < world.notes.length; i++) {
+            var noteOption = document.createElement("option");
+            noteOption.value = world.freqs[i].toString();
+            noteOption.selected = (world.freqs[i] === pickedPP.oscFreq);
+            noteOption.textContent = world.notes[i];
+            noteInput.appendChild(noteOption);
+        }
+        noteInput.addEventListener("change", function () {
+            pickedPP.oscFreq = parseFloat(noteInput.value);
             world.save();
         });
-        line3.appendChild(freqLabel);
-        line3.appendChild(freqInput);
+        line3.appendChild(noteLabel);
+        line3.appendChild(noteInput);
         pInfo.appendChild(titleBar);
         pInfo.appendChild(line1);
         pInfo.appendChild(line2);
@@ -505,7 +515,7 @@ var World = (function () {
         this.particles = [];
         this.c_constant = 0.5;
         this.paused = true;
-        this.arrowScale = 25;
+        this.arrowScale = 50;
         this.cursorPosition = [0, 0];
         this.dragging = false;
         this.shiftPress = false;
@@ -516,6 +526,8 @@ var World = (function () {
         this.showArrows = false;
         this.pPairs = [];
         this.perapsisThreshold = 30;
+        this.notes = ['C4', 'C#4/Db4', 'D4', 'D#4/Eb4', 'E4', 'F4', 'F#4/Gb4', 'G4', 'G#4/Ab4', 'A4', 'A#4/Bb4', 'B4', 'C5', 'C#5/Db5', 'D5', 'D#5/Eb5', 'E5', 'F5', 'F#5/Gb5', 'G5', 'G#5/Ab5', 'A5', 'A#5/Bb5', 'B5', 'C6', 'C#6/Db6', 'D6', 'D#6/Eb6', 'E6', 'F6', 'F#6/Gb6', 'G6', 'G#6/Ab6', 'A6', 'A#6/Bb6', 'B6'];
+        this.freqs = [261.63, 277.18, 293.66, 311.13, 329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88, 523.25, 554.37, 587.33, 622.25, 659.25, 698.46, 739.99, 783.99, 830.61, 880.00, 932.33, 987.77, 1046.50, 1108.73, 1174.66, 1244.51, 1318.51, 1396.91, 1479.98, 1567.98, 1661.22, 1760.00, 1864.66, 1975.53];
         var wTemp = localStorage.getItem("world_nbody");
         if (wTemp) {
             this.load();
@@ -660,7 +672,6 @@ var World = (function () {
             }
             index--;
         }
-        console.log(this.pPairs);
     };
     World.prototype.translateParticles = function (savedParticles) {
         var w = this;
@@ -693,12 +704,17 @@ var World = (function () {
         this.paused = true;
         this.scale = wTemp.scale;
         this.shiftPress = false;
+        this.showArrows = wTemp.showArrows;
+        this.showTrails = wTemp.showTrails;
         this.translateParticles(wTemp.particles);
         this.translateParticlePairs(wTemp.pPairs);
     };
     World.prototype.togglePlayPause = function () {
         this.paused = !this.paused;
         return this.paused;
+    };
+    World.prototype.noteToFreq = function (note) {
+        return this.freqs[Math.abs(this.notes.indexOf(note))];
     };
     return World;
 }());
@@ -870,12 +886,11 @@ function reset() {
     location.reload();
 }
 function resetCamera() {
-    world.scale = 10;
+    world.scale = 8;
     world.cameraPosition = [0, 0];
 }
 function toggleDebug() {
     ui.toggleDebug();
-    toggleMenu();
 }
 function toggleMenu(setting) {
     if (setting == 'close')
@@ -898,8 +913,10 @@ function toggleHeader(setting) {
 }
 function toggleArrows() {
     world.showArrows = !world.showArrows;
+    world.save();
 }
 function toggleTrails() {
     world.showTrails = !world.showTrails;
+    world.save();
 }
 window.onload = init;

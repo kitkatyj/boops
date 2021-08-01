@@ -12,7 +12,7 @@ class ParticlePair {
     periapsis:boolean = false;
     gainNode:GainNode;
     osc:OscillatorNode;
-    oscFreq:number = 400;
+    oscFreq:number = 392;
     wave:OscillatorType = 'sine'; // sine, square, sawtooth, triangle
 
     fade:number = 0;
