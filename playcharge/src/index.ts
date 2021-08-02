@@ -204,7 +204,7 @@ function resetCamera(){
 }
 
 function toggleDebug(){
-    ui.toggleDebug(); toggleMenu();
+    ui.toggleDebug();
 }
 
 function toggleMenu(setting?:string){
@@ -231,10 +231,12 @@ function toggleHeader(setting:string){
 
 function toggleArrows(){
     world.showArrows = !world.showArrows;
+    world.save();
 }
 
 function toggleTrails(){
     world.showTrails = !world.showTrails;
+    world.save();
 }
 
 window.onload = init;

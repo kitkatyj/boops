@@ -57,17 +57,38 @@ class Particle {
 
     drawTrail(w:World){
         let p = this;
-        this.trail.forEach(function(t){
-            ctx.beginPath();
-            ctx.arc(
-                (t[0] + w.cameraPosition[0])*w.scale + w.drawingOffset[0],
-                (t[1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1],
-                1, 0, 2 * Math.PI
-            );
-            ctx.fillStyle = p.color;
-            ctx.fill();
-            ctx.closePath();
-        });
+        if(world.trailStyle === 0){
+            this.trail.forEach(function(t,index){
+                ctx.beginPath();
+                ctx.arc(
+                    (t[0] + w.cameraPosition[0])*w.scale + w.drawingOffset[0],
+                    (t[1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1],
+                    1, 0, 2 * Math.PI
+                );
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = index / p.trail.length;
+                ctx.fill();
+                ctx.closePath();
+                ctx.globalAlpha = 1;
+            });
+        } else {
+            for(let i = 1; i < this.trail.length; i++){
+                ctx.beginPath();
+                ctx.moveTo(
+                    (this.trail[i][0] + w.cameraPosition[0])*w.scale + w.drawingOffset[0],
+                    (this.trail[i][1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1]
+                );
+                ctx.lineTo(
+                    (this.trail[i-1][0] + w.cameraPosition[0])*w.scale + w.drawingOffset[0],
+                    (this.trail[i-1][1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1]
+                );
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = w.scale * p.mass;
+                ctx.globalAlpha = i / p.trail.length * 0.3;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+        }
     }
 
     drawArrow(ctx:CanvasRenderingContext2D, fromx:number, fromy:number, tox:number, toy:number, width:number, headLength:number){
@@ -98,7 +119,6 @@ class Particle {
     
         //draws the paths created above
         ctx.strokeStyle = "#ffffff";
-        ctx.lineCap = "round";
         ctx.lineWidth = width;
         ctx.stroke();
         ctx.fillStyle = "#ffffff";

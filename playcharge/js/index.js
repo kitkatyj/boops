@@ -47,13 +47,29 @@ var Particle = (function () {
     };
     Particle.prototype.drawTrail = function (w) {
         var p = this;
-        this.trail.forEach(function (t) {
-            ctx.beginPath();
-            ctx.arc((t[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (t[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
-            ctx.fillStyle = p.color;
-            ctx.fill();
-            ctx.closePath();
-        });
+        if (world.trailStyle === 0) {
+            this.trail.forEach(function (t, index) {
+                ctx.beginPath();
+                ctx.arc((t[0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (t[1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1], 1, 0, 2 * Math.PI);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = index / p.trail.length;
+                ctx.fill();
+                ctx.closePath();
+                ctx.globalAlpha = 1;
+            });
+        }
+        else {
+            for (var i = 1; i < this.trail.length; i++) {
+                ctx.beginPath();
+                ctx.moveTo((this.trail[i][0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (this.trail[i][1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1]);
+                ctx.lineTo((this.trail[i - 1][0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (this.trail[i - 1][1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1]);
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = w.scale * p.mass;
+                ctx.globalAlpha = i / p.trail.length * 0.3;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+        }
     };
     Particle.prototype.drawArrow = function (ctx, fromx, fromy, tox, toy, width, headLength) {
         var angle = Math.atan2(toy - fromy, tox - fromx);
@@ -72,7 +88,6 @@ var Particle = (function () {
         ctx.lineTo(tox, toy);
         ctx.lineTo(tox - headLength * Math.cos(angle - Math.PI / 7), toy - headLength * Math.sin(angle - Math.PI / 7));
         ctx.strokeStyle = "#ffffff";
-        ctx.lineCap = "round";
         ctx.lineWidth = width;
         ctx.stroke();
         ctx.fillStyle = "#ffffff";
@@ -135,9 +150,11 @@ var UI = (function () {
             if (world.togglePlayPause()) {
                 status = "Play";
                 u.stepForwardBtn.classList.remove("disabled");
+                u.addParticleBtn.classList.remove("disabled");
             }
             else {
                 u.stepForwardBtn.classList.add("disabled");
+                u.addParticleBtn.classList.add("disabled");
             }
             this.textContent = this.dataset.status = status;
             this.setAttribute("title", status);
@@ -164,6 +181,7 @@ var UI = (function () {
             ppBtn.textContent = ppBtn.dataset.status = "Play";
             this.classList.add("disabled");
             u.stepForwardBtn.classList.remove("disabled");
+            u.addParticleBtn.classList.remove("disabled");
             u.updateParticleInfo();
             u.initInfo();
         });
@@ -379,6 +397,8 @@ var World = (function () {
         this.shiftPress = false;
         this.dragOffset = [0, 0];
         this.showTrails = true;
+        this.trailStyle = 1;
+        this.trailLength = 50;
         this.showArrows = true;
         var wTemp = localStorage.getItem("world");
         if (wTemp) {
@@ -441,9 +461,13 @@ var World = (function () {
         });
     };
     World.prototype.physicsStep = function () {
+        var w = this;
         this.calculatePhysics();
         this.particles.forEach(function (p) {
             p.trail.push(JSON.parse(JSON.stringify(p.position)));
+            if (p.trail.length > w.trailLength) {
+                p.trail.shift();
+            }
             p.velocity[0] += p.acceleration[0];
             p.velocity[1] += p.acceleration[1];
             p.position[0] += p.velocity[0];
@@ -482,6 +506,8 @@ var World = (function () {
         this.paused = true;
         this.scale = wTemp.scale;
         this.shiftPress = false;
+        this.showArrows = wTemp.showArrows;
+        this.showTrails = wTemp.showTrails;
         this.translateParticles(wTemp.particles);
     };
     World.prototype.togglePlayPause = function () {
@@ -663,7 +689,6 @@ function resetCamera() {
 }
 function toggleDebug() {
     ui.toggleDebug();
-    toggleMenu();
 }
 function toggleMenu(setting) {
     if (setting == 'close')
@@ -686,8 +711,10 @@ function toggleHeader(setting) {
 }
 function toggleArrows() {
     world.showArrows = !world.showArrows;
+    world.save();
 }
 function toggleTrails() {
     world.showTrails = !world.showTrails;
+    world.save();
 }
 window.onload = init;

@@ -30,17 +30,6 @@ class UI {
         this.debug = document.createElement("div");
         this.addParticleBtn = document.createElement("a");
 
-        // MAIN MENU (top left)
-        // let mmenu_icon = document.createElement("a");
-        // mmenu_icon.textContent = "Menu";
-
-        // let mmenu_list = document.createElement("ul");
-        // let mmenu_reset = document.createElement("a");
-
-        // this.mainMenu.setAttribute("id","main_menu");
-        // this.mainMenu.classList.add("ui");
-        // mainBody.appendChild(this.mainMenu);
-
         // DEBUG (top right)
         this.debug.setAttribute("id","debug");
         this.debug.classList.add("ui");
@@ -84,8 +73,10 @@ class UI {
             if(world.togglePlayPause()){
                 status = "Play";
                 u.stepForwardBtn.classList.remove("disabled");
+                u.addParticleBtn.classList.remove("disabled");
             }else {
                 u.stepForwardBtn.classList.add("disabled");
+                u.addParticleBtn.classList.add("disabled");
             }
             this.textContent = this.dataset.status = status;
             this.setAttribute("title", status);
@@ -114,6 +105,7 @@ class UI {
             ppBtn.textContent = ppBtn.dataset.status = "Play";
             this.classList.add("disabled");
             u.stepForwardBtn.classList.remove("disabled");
+            u.addParticleBtn.classList.remove("disabled");
             u.updateParticleInfo();
             u.initInfo();
         });

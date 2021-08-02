@@ -81,7 +81,7 @@ class Particle {
                     (this.trail[i-1][1] + w.cameraPosition[1])* -w.scale + w.drawingOffset[1]
                 );
                 ctx.strokeStyle = p.color;
-                ctx.lineWidth = w.scale;
+                ctx.lineWidth = w.scale * p.mass;
                 ctx.globalAlpha = i / p.trail.length * 0.3;
                 ctx.stroke();
                 ctx.globalAlpha = 1;
