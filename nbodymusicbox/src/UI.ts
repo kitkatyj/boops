@@ -76,6 +76,12 @@ class UI {
                 u.stepForwardBtn.classList.remove("disabled");
                 u.addParticleBtn.classList.remove("disabled");
                 world.resetAudioContext();
+                world.pPairs.forEach((pp) => {
+                    pp.enableInput(true);
+                });
+                world.getParticles().forEach((p) => {
+                    p.enableInput(true);
+                });
             }else {
                 // PLAYING
                 u.stepForwardBtn.classList.add("disabled");
@@ -89,6 +95,10 @@ class UI {
                     pp.osc.frequency.value = pp.oscFreq;
                     pp.osc.type = pp.wave;
                     pp.osc.start();
+                    pp.enableInput(false);
+                });
+                world.getParticles().forEach((p) => {
+                    p.enableInput(false);
                 });
                 u.addParticleBtn.classList.add("disabled");
             }
@@ -138,75 +148,83 @@ class UI {
         localStorage.setItem("UIconfig",JSON.stringify(this.UIconfig));
     }
 
-    initPPInfo(p1:Particle,p2:Particle){
+    initPPInfo(){
         let u = this;
         u.particleInfo.innerHTML = '';
 
-        let pInfo = document.createElement("div");
-        pInfo.classList.add("p_info");
+        world.pPairs.forEach((pp) => {
+            if(pp.selected){
+                let p1 = pp.particles[0]; let p2 = pp.particles[1];
+                let pInfo = document.createElement("div");
+                pInfo.classList.add("p_info");
 
-        // TITLE BAR
-        let titleBar = document.createElement("p");
-        titleBar.classList.add("particle_titlebar");
+                // TITLE BAR
+                let titleBar = document.createElement("p");
+                titleBar.classList.add("particle_titlebar");
 
-        let colorCircleA = document.createElement("span");
-        colorCircleA.setAttribute("type","color");
-        colorCircleA.style.backgroundColor = p1.color;
-        colorCircleA.classList.add("color-circle");
+                let colorCircleA = document.createElement("span");
+                colorCircleA.setAttribute("type","color");
+                colorCircleA.style.backgroundColor = p1.color;
+                colorCircleA.classList.add("color-circle");
 
-        let colorCircleB = document.createElement("span");
-        colorCircleB.setAttribute("type","color");
-        colorCircleB.style.backgroundColor = p2.color;
-        colorCircleB.classList.add("color-circle");
+                let colorCircleB = document.createElement("span");
+                colorCircleB.setAttribute("type","color");
+                colorCircleB.style.backgroundColor = p2.color;
+                colorCircleB.classList.add("color-circle");
 
-        let particleTitle = document.createElement("span");
-        particleTitle.classList.add("particle_title");
-        particleTitle.textContent = "Particle "+p1.getId()+" & Particle "+p2.getId();
+                let particleTitle = document.createElement("span");
+                particleTitle.classList.add("particle_title");
+                particleTitle.textContent = "Particle "+p1.getId()+" & Particle "+p2.getId();
 
-        titleBar.appendChild(colorCircleA);
-        titleBar.appendChild(colorCircleB);
-        titleBar.appendChild(particleTitle);
+                titleBar.appendChild(colorCircleA);
+                titleBar.appendChild(colorCircleB);
+                titleBar.appendChild(particleTitle);
 
-        let pickedPP = world.findParticlePair(p1,p2);
+                let pickedPP = world.findParticlePair(p1,p2);
 
-        // LINE ONE
-        let line1 = document.createElement("p");
-        pickedPP.distanceLabel = line1;
+                // LINE ONE
+                let line1 = document.createElement("p");
+                pickedPP.distanceLabel = line1;
 
-        // LINE TWO
-        let line2 = document.createElement("p");
-        pickedPP.velocityLabel = line2;
+                // LINE TWO
+                let line2 = document.createElement("p");
+                pickedPP.velocityLabel = line2;
 
-        // LINE THREE
-        let line3 = document.createElement("p");
+                // LINE THREE
+                let line3 = document.createElement("p");
 
-        let noteLabel = document.createElement("span");
-        noteLabel.textContent = "Note";
-        let noteInput = document.createElement("select");
-        noteInput.setAttribute("id",pickedPP.particles[0].getId()+"-"+pickedPP.particles[1].getId()+"_note");
-        noteInput.innerHTML = "";
-        for(let i = 0; i < world.notes.length; i++){
-            let noteOption = document.createElement("option");
-            noteOption.value = world.freqs[i].toString();
-            noteOption.selected = (world.freqs[i] === pickedPP.oscFreq);
-            noteOption.textContent = world.notes[i];
-            noteInput.appendChild(noteOption);
-        }
-        noteInput.addEventListener("change",() => {
-            pickedPP.oscFreq = parseFloat(noteInput.value);
-            world.save();
+                let noteLabel = document.createElement("span");
+                noteLabel.textContent = "Note";
+                let noteInput = document.createElement("select");
+                pickedPP.noteSelect = noteInput;
+                noteInput.setAttribute("id",pickedPP.particles[0].getId()+"-"+pickedPP.particles[1].getId()+"_note");
+                noteInput.innerHTML = "";
+                for(let i = 0; i < world.notes.length; i++){
+                    let noteOption = document.createElement("option");
+                    noteOption.value = world.freqs[i].toString();
+                    noteOption.selected = (world.freqs[i] === pickedPP.oscFreq);
+                    noteOption.textContent = world.notes[i];
+                    noteInput.appendChild(noteOption);
+                }
+                noteInput.addEventListener("change",() => {
+                    pickedPP.oscFreq = parseFloat(noteInput.value);
+                    world.save();
+                });
+                
+                line3.appendChild(noteLabel);
+                line3.appendChild(noteInput);
+
+                // FINAL APPEND
+                pInfo.appendChild(titleBar);
+                pInfo.appendChild(line1);
+                pInfo.appendChild(line2);
+                pInfo.appendChild(line3);
+
+                u.particleInfo.appendChild(pInfo);
+            }
         });
+
         
-        line3.appendChild(noteLabel);
-        line3.appendChild(noteInput);
-
-        // FINAL APPEND
-        pInfo.appendChild(titleBar);
-        pInfo.appendChild(line1);
-        pInfo.appendChild(line2);
-        pInfo.appendChild(line3);
-
-        u.particleInfo.appendChild(pInfo);
     }
 
     initInfo(){
@@ -214,7 +232,6 @@ class UI {
         u.particleInfo.innerHTML = '';
         world.getParticles().forEach(function(p,index){
             if(p.selected){
-
                 // P_INFO FORM
                 let pInfo = document.createElement("div");
                 pInfo.classList.add("p_info");
@@ -261,6 +278,7 @@ class UI {
                 massLabel.textContent = "Mass";
 
                 let massInput = document.createElement("input");
+                p.massInput = massInput;
                 massLabel.setAttribute("id",p.getId()+"_mass");
                 massInput.type = "number";
                 massInput.value = p.mass.toString();
@@ -404,7 +422,12 @@ class UI {
 
                         pLink.appendChild(colorCircleA);
                         pLink.addEventListener("click",() => {
-                            u.initPPInfo(p,p2);
+                            let pp = world.findParticlePair(p,p2)
+                            pp.select();
+                            u.initPPInfo();
+                            if(!world.paused){
+                                pp.enableInput(false);
+                            }
                         })
 
                         line5.appendChild(pLink);

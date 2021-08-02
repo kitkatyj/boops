@@ -10,9 +10,10 @@ class Particle {
     trail: number[][] = [];
     dragOffset: number[] = [0,0];
 
-    positionInputs: HTMLInputElement[];
-    velocityInputs: HTMLInputElement[];
-    accelerationInputs: HTMLInputElement[];
+    massInput?: HTMLInputElement;
+    positionInputs?: HTMLInputElement[];
+    velocityInputs?: HTMLInputElement[];
+    accelerationInputs?: HTMLInputElement[];
 
     constructor(mass:number,position:number[],color?:string,velocity?:number[],acceleration?:number[]){
         this.mass = mass;
@@ -125,4 +126,16 @@ class Particle {
 
     setId(id:string){this.id = id;}
     getId():string{return this.id;}
+
+    enableInput(enable:boolean){
+        if(this.massInput && this.positionInputs && this.velocityInputs && this.accelerationInputs){
+            this.massInput.disabled = 
+            this.positionInputs[0].disabled =
+            this.positionInputs[1].disabled =
+            this.velocityInputs[0].disabled =
+            this.velocityInputs[1].disabled =
+            this.accelerationInputs[0].disabled =
+            this.accelerationInputs[1].disabled = !enable;
+        }
+    }
 }

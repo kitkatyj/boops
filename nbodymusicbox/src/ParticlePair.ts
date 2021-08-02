@@ -6,10 +6,12 @@ class ParticlePair {
     lastD:number = 0;
     lastV:number = 0;
 
-    distanceLabel: HTMLParagraphElement;
-    velocityLabel: HTMLParagraphElement;
+    distanceLabel?: HTMLParagraphElement;
+    velocityLabel?: HTMLParagraphElement;
+    noteSelect?: HTMLSelectElement;
 
     periapsis:boolean = false;
+    selected:boolean = false;
     gainNode:GainNode;
     osc:OscillatorNode;
     oscFreq:number = 392;
@@ -52,9 +54,13 @@ class ParticlePair {
             this.fade = 1;
         }
         this.lastV = this.velocity;
+
+        if(this.selected){
+            this.draw(true);
+        }
     }
 
-    draw(){
+    draw(fixed?:boolean){
         ctx.beginPath();
         ctx.moveTo(
             (this.particles[0].position[0] + world.cameraPosition[0])*  world.scale + world.drawingOffset[0],
@@ -67,8 +73,21 @@ class ParticlePair {
         ctx.closePath();
         ctx.strokeStyle = "white";
         ctx.lineWidth = 3;
-        ctx.globalAlpha = this.fade;
+        if(fixed){
+            ctx.globalAlpha = 0.5 + 0.5*this.fade;
+        } else {
+            ctx.globalAlpha = this.fade;
+        }
         ctx.stroke();
         ctx.globalAlpha = 1;
+    }
+
+    select(){
+        this.selected = true;
+        this.particles[0].selected = this.particles[1].selected = false;
+    }
+
+    enableInput(enable:boolean){
+        if(this.noteSelect) this.noteSelect.disabled = !enable;
     }
 }

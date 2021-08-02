@@ -54,14 +54,12 @@ class World {
 
     draw(ctx:CanvasRenderingContext2D){
         let w = this;
-        this.particles.forEach(function(p){
-            p.draw(ctx,w);
-        });
-
         this.pPairs.forEach((pp) => {
             pp.update();
         });
-        
+        this.particles.forEach(function(p){
+            p.draw(ctx,w);
+        });
         // play physics!
         if(!w.paused){
             this.physicsStep();

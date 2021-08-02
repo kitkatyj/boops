@@ -62,7 +62,7 @@ var Particle = (function () {
                 ctx.moveTo((this.trail[i][0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (this.trail[i][1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1]);
                 ctx.lineTo((this.trail[i - 1][0] + w.cameraPosition[0]) * w.scale + w.drawingOffset[0], (this.trail[i - 1][1] + w.cameraPosition[1]) * -w.scale + w.drawingOffset[1]);
                 ctx.strokeStyle = p.color;
-                ctx.lineWidth = w.scale;
+                ctx.lineWidth = w.scale * p.mass;
                 ctx.globalAlpha = i / p.trail.length * 0.3;
                 ctx.stroke();
                 ctx.globalAlpha = 1;
@@ -93,6 +93,17 @@ var Particle = (function () {
     };
     Particle.prototype.setId = function (id) { this.id = id; };
     Particle.prototype.getId = function () { return this.id; };
+    Particle.prototype.enableInput = function (enable) {
+        if (this.massInput && this.positionInputs && this.velocityInputs && this.accelerationInputs) {
+            this.massInput.disabled =
+                this.positionInputs[0].disabled =
+                    this.positionInputs[1].disabled =
+                        this.velocityInputs[0].disabled =
+                            this.velocityInputs[1].disabled =
+                                this.accelerationInputs[0].disabled =
+                                    this.accelerationInputs[1].disabled = !enable;
+        }
+    };
     return Particle;
 }());
 var ParticlePair = (function () {
@@ -103,6 +114,7 @@ var ParticlePair = (function () {
         this.lastD = 0;
         this.lastV = 0;
         this.periapsis = false;
+        this.selected = false;
         this.oscFreq = 392;
         this.wave = 'sine';
         this.fade = 0;
@@ -132,17 +144,33 @@ var ParticlePair = (function () {
             this.fade = 1;
         }
         this.lastV = this.velocity;
+        if (this.selected) {
+            this.draw(true);
+        }
     };
-    ParticlePair.prototype.draw = function () {
+    ParticlePair.prototype.draw = function (fixed) {
         ctx.beginPath();
         ctx.moveTo((this.particles[0].position[0] + world.cameraPosition[0]) * world.scale + world.drawingOffset[0], (this.particles[0].position[1] + world.cameraPosition[1]) * -world.scale + world.drawingOffset[1]);
         ctx.lineTo((this.particles[1].position[0] + world.cameraPosition[0]) * world.scale + world.drawingOffset[0], (this.particles[1].position[1] + world.cameraPosition[1]) * -world.scale + world.drawingOffset[1]);
         ctx.closePath();
         ctx.strokeStyle = "white";
         ctx.lineWidth = 3;
-        ctx.globalAlpha = this.fade;
+        if (fixed) {
+            ctx.globalAlpha = 0.5 + 0.5 * this.fade;
+        }
+        else {
+            ctx.globalAlpha = this.fade;
+        }
         ctx.stroke();
         ctx.globalAlpha = 1;
+    };
+    ParticlePair.prototype.select = function () {
+        this.selected = true;
+        this.particles[0].selected = this.particles[1].selected = false;
+    };
+    ParticlePair.prototype.enableInput = function (enable) {
+        if (this.noteSelect)
+            this.noteSelect.disabled = !enable;
     };
     return ParticlePair;
 }());
@@ -201,6 +229,12 @@ var UI = (function () {
                 u.stepForwardBtn.classList.remove("disabled");
                 u.addParticleBtn.classList.remove("disabled");
                 world.resetAudioContext();
+                world.pPairs.forEach(function (pp) {
+                    pp.enableInput(true);
+                });
+                world.getParticles().forEach(function (p) {
+                    p.enableInput(true);
+                });
             }
             else {
                 u.stepForwardBtn.classList.add("disabled");
@@ -214,6 +248,10 @@ var UI = (function () {
                     pp.osc.frequency.value = pp.oscFreq;
                     pp.osc.type = pp.wave;
                     pp.osc.start();
+                    pp.enableInput(false);
+                });
+                world.getParticles().forEach(function (p) {
+                    p.enableInput(false);
                 });
                 u.addParticleBtn.classList.add("disabled");
             }
@@ -259,56 +297,63 @@ var UI = (function () {
         this.debug.classList.toggle("hidden");
         localStorage.setItem("UIconfig", JSON.stringify(this.UIconfig));
     };
-    UI.prototype.initPPInfo = function (p1, p2) {
+    UI.prototype.initPPInfo = function () {
         var u = this;
         u.particleInfo.innerHTML = '';
-        var pInfo = document.createElement("div");
-        pInfo.classList.add("p_info");
-        var titleBar = document.createElement("p");
-        titleBar.classList.add("particle_titlebar");
-        var colorCircleA = document.createElement("span");
-        colorCircleA.setAttribute("type", "color");
-        colorCircleA.style.backgroundColor = p1.color;
-        colorCircleA.classList.add("color-circle");
-        var colorCircleB = document.createElement("span");
-        colorCircleB.setAttribute("type", "color");
-        colorCircleB.style.backgroundColor = p2.color;
-        colorCircleB.classList.add("color-circle");
-        var particleTitle = document.createElement("span");
-        particleTitle.classList.add("particle_title");
-        particleTitle.textContent = "Particle " + p1.getId() + " & Particle " + p2.getId();
-        titleBar.appendChild(colorCircleA);
-        titleBar.appendChild(colorCircleB);
-        titleBar.appendChild(particleTitle);
-        var pickedPP = world.findParticlePair(p1, p2);
-        var line1 = document.createElement("p");
-        pickedPP.distanceLabel = line1;
-        var line2 = document.createElement("p");
-        pickedPP.velocityLabel = line2;
-        var line3 = document.createElement("p");
-        var noteLabel = document.createElement("span");
-        noteLabel.textContent = "Note";
-        var noteInput = document.createElement("select");
-        noteInput.setAttribute("id", pickedPP.particles[0].getId() + "-" + pickedPP.particles[1].getId() + "_note");
-        noteInput.innerHTML = "";
-        for (var i = 0; i < world.notes.length; i++) {
-            var noteOption = document.createElement("option");
-            noteOption.value = world.freqs[i].toString();
-            noteOption.selected = (world.freqs[i] === pickedPP.oscFreq);
-            noteOption.textContent = world.notes[i];
-            noteInput.appendChild(noteOption);
-        }
-        noteInput.addEventListener("change", function () {
-            pickedPP.oscFreq = parseFloat(noteInput.value);
-            world.save();
+        world.pPairs.forEach(function (pp) {
+            if (pp.selected) {
+                var p1 = pp.particles[0];
+                var p2 = pp.particles[1];
+                var pInfo = document.createElement("div");
+                pInfo.classList.add("p_info");
+                var titleBar = document.createElement("p");
+                titleBar.classList.add("particle_titlebar");
+                var colorCircleA = document.createElement("span");
+                colorCircleA.setAttribute("type", "color");
+                colorCircleA.style.backgroundColor = p1.color;
+                colorCircleA.classList.add("color-circle");
+                var colorCircleB = document.createElement("span");
+                colorCircleB.setAttribute("type", "color");
+                colorCircleB.style.backgroundColor = p2.color;
+                colorCircleB.classList.add("color-circle");
+                var particleTitle = document.createElement("span");
+                particleTitle.classList.add("particle_title");
+                particleTitle.textContent = "Particle " + p1.getId() + " & Particle " + p2.getId();
+                titleBar.appendChild(colorCircleA);
+                titleBar.appendChild(colorCircleB);
+                titleBar.appendChild(particleTitle);
+                var pickedPP_1 = world.findParticlePair(p1, p2);
+                var line1 = document.createElement("p");
+                pickedPP_1.distanceLabel = line1;
+                var line2 = document.createElement("p");
+                pickedPP_1.velocityLabel = line2;
+                var line3 = document.createElement("p");
+                var noteLabel = document.createElement("span");
+                noteLabel.textContent = "Note";
+                var noteInput_1 = document.createElement("select");
+                pickedPP_1.noteSelect = noteInput_1;
+                noteInput_1.setAttribute("id", pickedPP_1.particles[0].getId() + "-" + pickedPP_1.particles[1].getId() + "_note");
+                noteInput_1.innerHTML = "";
+                for (var i = 0; i < world.notes.length; i++) {
+                    var noteOption = document.createElement("option");
+                    noteOption.value = world.freqs[i].toString();
+                    noteOption.selected = (world.freqs[i] === pickedPP_1.oscFreq);
+                    noteOption.textContent = world.notes[i];
+                    noteInput_1.appendChild(noteOption);
+                }
+                noteInput_1.addEventListener("change", function () {
+                    pickedPP_1.oscFreq = parseFloat(noteInput_1.value);
+                    world.save();
+                });
+                line3.appendChild(noteLabel);
+                line3.appendChild(noteInput_1);
+                pInfo.appendChild(titleBar);
+                pInfo.appendChild(line1);
+                pInfo.appendChild(line2);
+                pInfo.appendChild(line3);
+                u.particleInfo.appendChild(pInfo);
+            }
         });
-        line3.appendChild(noteLabel);
-        line3.appendChild(noteInput);
-        pInfo.appendChild(titleBar);
-        pInfo.appendChild(line1);
-        pInfo.appendChild(line2);
-        pInfo.appendChild(line3);
-        u.particleInfo.appendChild(pInfo);
     };
     UI.prototype.initInfo = function () {
         var u = this;
@@ -349,6 +394,7 @@ var UI = (function () {
                 massLabel.setAttribute("for", p.getId() + "_mass");
                 massLabel.textContent = "Mass";
                 var massInput = document.createElement("input");
+                p.massInput = massInput;
                 massLabel.setAttribute("id", p.getId() + "_mass");
                 massInput.type = "number";
                 massInput.value = p.mass.toString();
@@ -454,7 +500,12 @@ var UI = (function () {
                         colorCircleA.classList.add("color-circle");
                         pLink.appendChild(colorCircleA);
                         pLink.addEventListener("click", function () {
-                            u.initPPInfo(p, p2);
+                            var pp = world.findParticlePair(p, p2);
+                            pp.select();
+                            u.initPPInfo();
+                            if (!world.paused) {
+                                pp.enableInput(false);
+                            }
                         });
                         line5_1.appendChild(pLink);
                     }
@@ -554,11 +605,11 @@ var World = (function () {
     }
     World.prototype.draw = function (ctx) {
         var w = this;
-        this.particles.forEach(function (p) {
-            p.draw(ctx, w);
-        });
         this.pPairs.forEach(function (pp) {
             pp.update();
+        });
+        this.particles.forEach(function (p) {
+            p.draw(ctx, w);
         });
         if (!w.paused) {
             this.physicsStep();
@@ -760,7 +811,9 @@ function init() {
                 p.selected = p.mouseDown = true;
                 p.dragOffset[0] = world.cursorPosition[0] - p.position[0] - world.cameraPosition[0];
                 p.dragOffset[1] = world.cursorPosition[1] - p.position[1] - world.cameraPosition[1];
-                document.addEventListener("mousemove", particleDragged);
+                if (world.paused) {
+                    document.addEventListener("mousemove", particleDragged);
+                }
                 particleSelected = true;
             }
             else {
@@ -768,6 +821,7 @@ function init() {
             }
         });
         ui.initInfo();
+        deselectAll('pairs');
         if (!particleSelected) {
             world.dragOffset[0] = world.cursorPosition[0] - world.cameraPosition[0];
             world.dragOffset[1] = world.cursorPosition[1] - world.cameraPosition[1];
@@ -789,7 +843,7 @@ function init() {
             p.mouseDown = false;
         });
     });
-    document.addEventListener("wheel", function (e) {
+    canvas.addEventListener("wheel", function (e) {
         var scale = e.deltaY * 0.01;
         if (scale > 4)
             scale = 4;
@@ -918,5 +972,34 @@ function toggleArrows() {
 function toggleTrails() {
     world.showTrails = !world.showTrails;
     world.save();
+}
+function selectAll(setting) {
+    toggleMenu('close');
+    switch (setting) {
+        case 'particles':
+            world.getParticles().forEach(function (p) {
+                p.selected = true;
+                ui.initInfo();
+            });
+            break;
+        case 'pairs':
+            world.pPairs.forEach(function (pp) {
+                pp.select();
+                ui.initPPInfo();
+            });
+    }
+}
+function deselectAll(setting) {
+    switch (setting) {
+        case 'particles':
+            world.getParticles().forEach(function (p) {
+                p.selected = false;
+            });
+            break;
+        case 'pairs':
+            world.pPairs.forEach(function (pp) {
+                pp.selected = false;
+            });
+    }
 }
 window.onload = init;

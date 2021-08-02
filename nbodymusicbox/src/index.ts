@@ -58,13 +58,17 @@ function init(){
                 p.selected = p.mouseDown = true;
                 p.dragOffset[0] = world.cursorPosition[0] - p.position[0] - world.cameraPosition[0];
                 p.dragOffset[1] = world.cursorPosition[1] - p.position[1] - world.cameraPosition[1];
-                document.addEventListener("mousemove",particleDragged);
+                if(world.paused){
+                    // if world is playing, don't allow dragging
+                    document.addEventListener("mousemove",particleDragged);
+                }
                 particleSelected = true;
             } else {
                 p.selected = false;
             }
         });
         ui.initInfo();
+        deselectAll('pairs');
 
         if(!particleSelected){
             // Background drag!
@@ -88,7 +92,7 @@ function init(){
         });
     })
     
-    document.addEventListener("wheel",function(e){
+    canvas.addEventListener("wheel",function(e){
         let scale = e.deltaY * 0.01;
         if(scale > 4) scale = 4; else if(scale < -4) scale = -4;
 
@@ -237,6 +241,37 @@ function toggleArrows(){
 function toggleTrails(){
     world.showTrails = !world.showTrails;
     world.save();
+}
+
+function selectAll(setting?:string){
+    toggleMenu('close');
+    switch(setting){
+        case 'particles':
+            world.getParticles().forEach((p) => {
+                p.selected = true;
+                ui.initInfo();
+            });
+            break;
+        case 'pairs':
+            world.pPairs.forEach((pp) => {
+                pp.select();
+                ui.initPPInfo();
+            });
+    }
+}
+
+function deselectAll(setting?:string){
+    switch(setting){
+        case 'particles':
+            world.getParticles().forEach((p) => {
+                p.selected = false;
+            });
+            break;
+        case 'pairs':
+            world.pPairs.forEach((pp) => {
+                pp.selected = false;
+            });
+    }
 }
 
 window.onload = init;

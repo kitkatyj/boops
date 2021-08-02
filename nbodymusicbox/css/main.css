@@ -96,6 +96,7 @@ header .btn:active {
 
 #particle_menu {
     right:0; bottom:0;
+    max-height: 100vh;
     display: flex;
     flex-direction: column-reverse;
     align-items: flex-end;
@@ -105,6 +106,7 @@ header .btn:active {
     background-color:rgba(128,128,128,0.3);
     border-radius: 1em;
     padding:0 0.5em;
+    overflow-y: scroll;
 }
 
 #particle_info .color-circle {
