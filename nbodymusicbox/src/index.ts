@@ -59,7 +59,7 @@ function init(){
                 p.dragOffset[0] = world.cursorPosition[0] - p.position[0] - world.cameraPosition[0];
                 p.dragOffset[1] = world.cursorPosition[1] - p.position[1] - world.cameraPosition[1];
                 if(world.paused){
-                    // if world is playing, don't allow dragging
+                    // if world is paused, allow dragging
                     document.addEventListener("mousemove",particleDragged);
                 }
                 particleSelected = true;
@@ -249,13 +249,23 @@ function selectAll(setting?:string){
         case 'particles':
             world.getParticles().forEach((p) => {
                 p.selected = true;
-                ui.initInfo();
+            });
+            ui.initInfo();
+            world.getParticles().forEach((p) => {
+                if(!world.paused){
+                    p.enableInput(false);
+                }
             });
             break;
         case 'pairs':
             world.pPairs.forEach((pp) => {
                 pp.select();
-                ui.initPPInfo();
+            });
+            ui.initPPInfo();
+            world.pPairs.forEach((pp) => {
+                if(!world.paused){
+                    pp.enableInput(false);
+                }
             });
     }
 }

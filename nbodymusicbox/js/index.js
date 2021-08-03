@@ -979,13 +979,23 @@ function selectAll(setting) {
         case 'particles':
             world.getParticles().forEach(function (p) {
                 p.selected = true;
-                ui.initInfo();
+            });
+            ui.initInfo();
+            world.getParticles().forEach(function (p) {
+                if (!world.paused) {
+                    p.enableInput(false);
+                }
             });
             break;
         case 'pairs':
             world.pPairs.forEach(function (pp) {
                 pp.select();
-                ui.initPPInfo();
+            });
+            ui.initPPInfo();
+            world.pPairs.forEach(function (pp) {
+                if (!world.paused) {
+                    pp.enableInput(false);
+                }
             });
     }
 }
