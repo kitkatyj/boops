@@ -17,7 +17,7 @@ canvas {
     user-select: none;
 }
 
-header {
+.popup {
     position: fixed;
     width:80%;
     max-width: 480px;
@@ -32,9 +32,16 @@ header {
     transition: 0.5s transform;
 }
 
-header.closed {
+.popup.closed {
     /* display:none; */
     transform:translate(-50%,100vh);
+}
+.popup label {
+    display: inline-block;
+    margin:0.5em;
+}
+.popup label > span {
+    margin-right: 0.5em;
 }
 
 header a {
@@ -74,7 +81,7 @@ header .btn:active {
 #main_menu ul {
     list-style: none;
     margin:0; padding:0;
-    background-color: rgba(255,255,255,0.2);
+    background-color: rgba(64,64,64,0.5);
     border-radius: 0.5em;
 }
 #main_menu.closed ul {
@@ -152,7 +159,7 @@ header .btn:active {
     margin:0 4px;
 }
 
-#particle_info input[type="number"], #particle_info input[type="text"], #particle_info select {
+input[type="number"], input[type="text"], select {
     font-size: 1em;
     width:4em;
     background-color:#000000;

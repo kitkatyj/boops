@@ -234,6 +234,7 @@ class World {
         this.shiftPress = false;
         this.showArrows = wTemp.showArrows;
         this.showTrails = wTemp.showTrails;
+        this.trailLength = wTemp.trailLength;
 
         this.translateParticles(wTemp.particles);
         this.translateParticlePairs(wTemp.pPairs);

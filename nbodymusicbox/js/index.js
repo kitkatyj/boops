@@ -192,6 +192,7 @@ var UI = (function () {
         this.resetBtn = document.createElement("a");
         this.debug = document.createElement("div");
         this.addParticleBtn = document.createElement("a");
+        this.preferences = document.querySelector("#prefs > div");
         this.debug.setAttribute("id", "debug");
         this.debug.classList.add("ui");
         if (!this.UIconfig.debugVisible)
@@ -296,6 +297,58 @@ var UI = (function () {
         this.UIconfig.debugVisible = !this.UIconfig.debugVisible;
         this.debug.classList.toggle("hidden");
         localStorage.setItem("UIconfig", JSON.stringify(this.UIconfig));
+    };
+    UI.prototype.initPrefs = function () {
+        var _this = this;
+        var prefs = [
+            {
+                name: 'Trail Length',
+                type: 'number',
+                value: world.trailLength,
+                changeFunction: function () {
+                    if (this.min <= this.value && this.value <= this.max) {
+                        world.trailLength = this.value;
+                        world.save();
+                    }
+                    else {
+                        alert("Value must be between " + this.min + " and " + this.max + ".");
+                    }
+                },
+                min: 0, max: 500
+            },
+            {
+                name: 'Periapsis Threshold',
+                type: 'number',
+                value: world.perapsisThreshold,
+                changeFunction: function () {
+                    if (this.min <= this.value) {
+                        world.perapsisThreshold = this.value;
+                        world.save();
+                    }
+                    else {
+                        alert("Value must be at least " + this.min + ".");
+                    }
+                },
+                min: 0
+            }
+        ];
+        this.preferences.innerHTML = '';
+        prefs.forEach(function (p) {
+            var pLabel = document.createElement("label");
+            var pSpan = document.createElement("span");
+            pSpan.textContent = p.name;
+            var pInput = document.createElement("input");
+            pInput.type = p.type;
+            pInput.value = p.value.toString();
+            if (p.min != undefined)
+                pInput.min = p.min.toString();
+            if (p.max != undefined)
+                pInput.max = p.max.toString();
+            pInput.addEventListener("change", p.changeFunction);
+            pLabel.appendChild(pSpan);
+            pLabel.appendChild(pInput);
+            _this.preferences.appendChild(pLabel);
+        });
     };
     UI.prototype.initPPInfo = function () {
         var u = this;
@@ -757,6 +810,7 @@ var World = (function () {
         this.shiftPress = false;
         this.showArrows = wTemp.showArrows;
         this.showTrails = wTemp.showTrails;
+        this.trailLength = wTemp.trailLength;
         this.translateParticles(wTemp.particles);
         this.translateParticlePairs(wTemp.pPairs);
     };
@@ -801,7 +855,8 @@ function init() {
         ];
     });
     canvas.addEventListener("mousedown", function (e) {
-        toggleHeader('close');
+        closeAllPopups();
+        toggleMenu('close');
         var particleSelected = false;
         world.getParticles().forEach(function (p) {
             var drawFromX = (p.position[0] + world.cameraPosition[0]) * world.scale + world.drawingOffset[0];
@@ -946,6 +1001,8 @@ function resetCamera() {
 function toggleDebug() {
     ui.toggleDebug();
 }
+function togglePrefs(setting) {
+}
 function toggleMenu(setting) {
     if (setting == 'close')
         document.getElementById("main_menu").classList.add("closed");
@@ -956,6 +1013,7 @@ function toggleMenu(setting) {
 }
 function toggleHeader(setting) {
     toggleMenu('close');
+    closeAllPopups();
     if (setting == 'close')
         document.getElementsByTagName("header")[0].classList.add("closed");
     else if (setting == 'open')
@@ -964,6 +1022,25 @@ function toggleHeader(setting) {
         document.getElementsByTagName("header")[0].classList.toggle("closed");
     var headerOpen = document.getElementsByTagName("header")[0].classList.contains("closed");
     localStorage.setItem("header", String(headerOpen));
+}
+function togglePopup(id, setting) {
+    toggleMenu('close');
+    closeAllPopups();
+    if (setting == 'close')
+        document.getElementById(id).classList.add("closed");
+    else if (setting == 'open') {
+        document.getElementById(id).classList.remove("closed");
+        if (id === 'prefs')
+            ui.initPrefs();
+    }
+    else
+        document.getElementById(id).classList.toggle("closed");
+}
+function closeAllPopups() {
+    var popups = document.querySelectorAll(".popup");
+    for (var i = 0; i < popups.length; i++) {
+        popups[i].classList.add("closed");
+    }
 }
 function toggleArrows() {
     world.showArrows = !world.showArrows;

@@ -8,6 +8,7 @@ class UI {
     resetBtn:HTMLAnchorElement;
     debug:HTMLDivElement;
     addParticleBtn:HTMLAnchorElement;
+    preferences:HTMLDivElement;
 
     UIconfig = {
         debugVisible:false
@@ -20,7 +21,6 @@ class UI {
         }
 
         let u = this;
-        // this.mainMenu = document.createElement("div");
         this.particleMenu = document.createElement("div");
         this.particleInfo = document.createElement("div");
         this.controlPanel = document.createElement("div");
@@ -29,6 +29,7 @@ class UI {
         this.resetBtn = document.createElement("a");
         this.debug = document.createElement("div");
         this.addParticleBtn = document.createElement("a");
+        this.preferences = <HTMLDivElement>document.querySelector("#prefs > div");
 
         // DEBUG (top right)
         this.debug.setAttribute("id","debug");
@@ -146,6 +147,55 @@ class UI {
         this.UIconfig.debugVisible = !this.UIconfig.debugVisible;
         this.debug.classList.toggle("hidden");
         localStorage.setItem("UIconfig",JSON.stringify(this.UIconfig));
+    }
+
+    initPrefs(){
+        let prefs = [
+            {
+                name:'Trail Length',
+                type:'number',
+                value: world.trailLength,
+                changeFunction: function(){
+                    if(this.min <= this.value && this.value <= this.max){
+                        world.trailLength = this.value;
+                        world.save();
+                    } else {
+                        alert("Value must be between "+this.min+" and "+this.max+".");
+                    }
+                },
+                min:0, max:500
+            },
+            {
+                name:'Periapsis Threshold',
+                type:'number',
+                value: world.perapsisThreshold,
+                changeFunction: function(){
+                    if(this.min <= this.value){
+                        world.perapsisThreshold = this.value;
+                        world.save();
+                    } else {
+                        alert("Value must be at least "+this.min+".");
+                    }
+                },
+                min:0
+            }
+        ];
+
+        this.preferences.innerHTML = '';
+        prefs.forEach((p) => {
+            let pLabel = document.createElement("label");
+            let pSpan = document.createElement("span");
+            pSpan.textContent = p.name;
+            let pInput = document.createElement("input");
+            pInput.type = p.type;
+            pInput.value = p.value.toString();
+            if(p.min != undefined) pInput.min = p.min.toString();
+            if(p.max != undefined) pInput.max = p.max.toString();
+            pInput.addEventListener("change",p.changeFunction);
+            pLabel.appendChild(pSpan);
+            pLabel.appendChild(pInput);
+            this.preferences.appendChild(pLabel);
+        });
     }
 
     initPPInfo(){

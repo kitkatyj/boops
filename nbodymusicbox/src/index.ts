@@ -44,7 +44,8 @@ function init(){
         ];
     });
     canvas.addEventListener("mousedown",function(e){
-        toggleHeader('close');
+        closeAllPopups();
+        toggleMenu('close');
         let particleSelected:boolean = false;
         world.getParticles().forEach(function(p){
             let drawFromX = (p.position[0] + world.cameraPosition[0])* world.scale + world.drawingOffset[0];
@@ -211,6 +212,10 @@ function toggleDebug(){
     ui.toggleDebug();
 }
 
+function togglePrefs(setting?:string){
+    
+}
+
 function toggleMenu(setting?:string){
     if(setting == 'close')
         document.getElementById("main_menu").classList.add("closed");
@@ -222,6 +227,7 @@ function toggleMenu(setting?:string){
 
 function toggleHeader(setting:string){
     toggleMenu('close');
+    closeAllPopups();
     if(setting == 'close')
         document.getElementsByTagName("header")[0].classList.add("closed");
     else if(setting == 'open')
@@ -231,6 +237,26 @@ function toggleHeader(setting:string){
     
     let headerOpen = document.getElementsByTagName("header")[0].classList.contains("closed");
     localStorage.setItem("header", String(headerOpen));
+}
+
+function togglePopup(id:string,setting:string){
+    toggleMenu('close');
+    closeAllPopups();
+    if(setting == 'close')
+        document.getElementById(id).classList.add("closed");
+    else if(setting == 'open'){
+        document.getElementById(id).classList.remove("closed");
+        if(id === 'prefs') ui.initPrefs();
+    }
+    else
+        document.getElementById(id).classList.toggle("closed");
+}
+
+function closeAllPopups(){
+    let popups = document.querySelectorAll(".popup");
+    for(let i = 0; i < popups.length; i++){
+        popups[i].classList.add("closed");
+    }
 }
 
 function toggleArrows(){
