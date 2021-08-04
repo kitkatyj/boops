@@ -856,6 +856,7 @@ function init() {
     });
     canvas.addEventListener("mousedown", function (e) {
         closeAllPopups();
+        toggleHeader('close');
         toggleMenu('close');
         var particleSelected = false;
         world.getParticles().forEach(function (p) {

@@ -45,6 +45,7 @@ function init(){
     });
     canvas.addEventListener("mousedown",function(e){
         closeAllPopups();
+        toggleHeader('close');
         toggleMenu('close');
         let particleSelected:boolean = false;
         world.getParticles().forEach(function(p){
