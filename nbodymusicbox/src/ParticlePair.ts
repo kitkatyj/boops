@@ -1,4 +1,7 @@
-class ParticlePair {
+import { pythagoras, world, ctx } from "./index";
+import { Particle } from './Particle';
+
+export class ParticlePair {
     particles:Particle[] = [];
     distance:number = 0;
     velocity:number = 0;

@@ -1,4 +1,7 @@
-let mainBody,
+import {UI} from './UI';
+import {World} from './World';
+
+export let mainBody,
 ui:UI,
 canvas: HTMLCanvasElement,
 ctx:CanvasRenderingContext2D,
@@ -9,12 +12,12 @@ zoomTimer:any=null;
 
 let times:number[] = [];
 
-let config = {
+export let config = {
     fps:0,
     frameCounter:true
 }
 
-function init(){
+export function init(){
     console.log("Ready!");
 
     // show header about information
@@ -143,7 +146,7 @@ function backgroundDragged(){
     world.cameraPosition[1] = parseFloat((world.cursorPosition[1] - world.dragOffset[1]).toFixed(1));
 }
 
-function particleDragged(){
+export function particleDragged(){
     world.dragging = true;
     world.calculatePhysics();
     world.getParticles().forEach(function(p){
@@ -167,7 +170,7 @@ function particleDragged(){
     });
 }
 
-function getRandomColor():string{
+export function getRandomColor():string{
     var letters = '0123456789ABCDEF';
     var color = '#';
     for (var i = 0; i < 6; i++) {
@@ -185,39 +188,31 @@ function canvasSizeReset(){
     if(world.paused) world.save();
 }
 
-function paintBg(color:string){
+export function paintBg(color:string){
     ctx.beginPath();
     ctx.rect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = color;
     ctx.fill();
 }
 
-function gravity(mass1:number,mass2:number,distance:number):number{
+export function gravity(mass1:number,mass2:number,distance:number):number{
     return mass1*mass2/distance;
 }
 
-function pythagoras(x:number, y:number){
+export function pythagoras(x:number, y:number){
     return Math.sqrt(x*x + y*y);
 }
 
-function reset(){
+export function reset(){
     localStorage.clear();
     location.reload();
 }
 
-function resetCamera(){
+export function resetCamera(){
     world.scale = 8; world.cameraPosition = [0,0];
 }
 
-function toggleDebug(){
-    ui.toggleDebug();
-}
-
-function togglePrefs(setting?:string){
-    
-}
-
-function toggleMenu(setting?:string){
+export function toggleMenu(setting?:string){
     if(setting == 'close')
         document.getElementById("main_menu").classList.add("closed");
     else if(setting == 'open')
@@ -226,7 +221,7 @@ function toggleMenu(setting?:string){
         document.getElementById("main_menu").classList.toggle("closed");
 }
 
-function toggleHeader(setting:string){
+export function toggleHeader(setting:string){
     toggleMenu('close');
     closeAllPopups();
     if(setting == 'close')
@@ -240,7 +235,7 @@ function toggleHeader(setting:string){
     localStorage.setItem("header", String(headerOpen));
 }
 
-function togglePopup(id:string,setting:string){
+export function togglePopup(id:string,setting:string){
     toggleMenu('close');
     closeAllPopups();
     if(setting == 'close')
@@ -253,24 +248,24 @@ function togglePopup(id:string,setting:string){
         document.getElementById(id).classList.toggle("closed");
 }
 
-function closeAllPopups(){
+export function closeAllPopups(){
     let popups = document.querySelectorAll(".popup");
     for(let i = 0; i < popups.length; i++){
         popups[i].classList.add("closed");
     }
 }
 
-function toggleArrows(){
+export function toggleArrows(){
     world.showArrows = !world.showArrows;
-    world.save();
+    if(world.paused) world.save();
 }
 
-function toggleTrails(){
+export function toggleTrails(){
     world.showTrails = !world.showTrails;
-    world.save();
+    if(world.paused) world.save();
 }
 
-function selectAll(setting?:string){
+export function selectAll(setting?:string){
     toggleMenu('close');
     switch(setting){
         case 'particles':
@@ -297,7 +292,7 @@ function selectAll(setting?:string){
     }
 }
 
-function deselectAll(setting?:string){
+export function deselectAll(setting?:string){
     switch(setting){
         case 'particles':
             world.getParticles().forEach((p) => {

@@ -1,4 +1,7 @@
-class Particle {
+import { getRandomColor, pythagoras, world, ctx } from './index';
+import { World } from './World';
+
+export class Particle {
     private id: string = "";
     mass: number = 1;
     position: number[] = [0,0];

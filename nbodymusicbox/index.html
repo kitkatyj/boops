@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="css/main.css">
     <meta property="og:title" content="The n-Body Music Box">
     <meta property="og:description" content="The music of the spheres.">
-    <script src="js/index.js"></script>
+    <script src="js/lib/require.js"></script>
+    <!-- <script src="js/index.js"></script> -->
 </head>
 <noscript>
     <h1>N-Body Music Box</h1>
@@ -22,25 +23,27 @@
         <p>Making music gravitationally. Make sure sound is on!</p>
         <p>Read more:&nbsp;<a class="btn" target="_blank" href="https://en.wikipedia.org/wiki/N-body_problem">N-body problem</a></p>
         <p>Copyright &copy; kitkatyj, 2021.</p>
-        <!-- <p><a class="btn" onclick="toggleHeader('close');">&times; Close</a></p> -->
     </header>
     <div id="main_menu" class="ui closed">
-        <a id="mmenu_icon" title="Menu" class="btn" onclick="toggleMenu();">Menu</a>
+        <a id="mmenu_icon" title="Menu" class="btn">Menu</a>
         <ul>
-            <li><a onclick="togglePopup('about','open');">About</a></li>
-            <li><a onclick="togglePopup('prefs','open');">Preferences</a></li>
-            <li><a onclick="selectAll('particles');">Select All Particles</a></li>
-            <li><a onclick="selectAll('pairs');">Select All Pairs</a></li>
-            <li><a onclick="toggleDebug();">Toggle Debug</a></li>
-            <li><a onclick="toggleArrows();">Toggle Arrows</a></li>
-            <li><a onclick="toggleTrails();">Toggle Trails</a></li>
-            <li><a onclick="resetCamera();">Reset View</a></li>
-            <li><a onclick="reset();">Reset All</a></li>
         </ul>
     </div>
     <div id="prefs" class="popup closed">
         <h2>Preferences</h2>
         <div></div>
     </div>
+
+    <script>
+        requirejs.config({
+            baseUrl:'./js',
+            paths:{
+                index: 'index'
+            }
+        });
+        require(['index'],function(index){
+            index.init();
+        });
+    </script>
 </body>
 </html>

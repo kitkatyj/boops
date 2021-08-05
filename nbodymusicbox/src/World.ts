@@ -1,4 +1,8 @@
-class World {
+import { ui, pythagoras, gravity } from "./index";
+import { ParticlePair } from "./ParticlePair";
+import { Particle } from './Particle';
+
+export class World {
     cameraPosition: number[] = [0,0];
     scale: number = 8;
     drawingOffset: number[] = [0,0];

@@ -1,5 +1,9 @@
-class UI {
-    mainMenu:HTMLDivElement;
+import { World } from './World';
+import { world, particleDragged,toggleHeader, togglePopup, toggleMenu, selectAll, toggleArrows, toggleTrails, resetCamera, reset } from "./index";
+import { Particle } from './Particle';
+
+export class UI {
+    mainMenuList:HTMLUListElement;
     particleMenu:HTMLDivElement;
     particleInfo:HTMLDivElement;
     controlPanel:HTMLDivElement;
@@ -30,6 +34,10 @@ class UI {
         this.debug = document.createElement("div");
         this.addParticleBtn = document.createElement("a");
         this.preferences = <HTMLDivElement>document.querySelector("#prefs > div");
+        this.mainMenuList = document.querySelector("#main_menu > ul");
+
+        // MENU
+        this.initMenu();
 
         // DEBUG (top right)
         this.debug.setAttribute("id","debug");
@@ -147,6 +155,71 @@ class UI {
         this.UIconfig.debugVisible = !this.UIconfig.debugVisible;
         this.debug.classList.toggle("hidden");
         localStorage.setItem("UIconfig",JSON.stringify(this.UIconfig));
+    }
+
+    initMenu(){
+        document.getElementById('mmenu_icon').addEventListener("click",() => {
+            toggleMenu();
+        });
+        let u = this;
+        let menu = [
+            {
+                name:'About',
+                clickFunction: function(){
+                    togglePopup('about','open')
+                }
+            },
+            {
+                name:'Preferences',
+                clickFunction: function(){
+                    togglePopup('prefs','open')
+                } 
+            },
+            {
+                name:'Select All Particles',
+                clickFunction: function(){
+                    selectAll('particles')
+                }
+            },
+            {
+                name:'Select All Pairs',
+                clickFunction: function(){
+                    selectAll('pairs')
+                }
+            },
+            {
+                name:'Toggle Debug',
+                clickFunction: function(){
+                    u.toggleDebug();
+                } 
+            },
+            {
+                name:'Toggle Arrows',
+                clickFunction: toggleArrows
+            },
+            {
+                name:'Toggle Trails',
+                clickFunction: toggleTrails
+            },
+            {
+                name:'Reset View',
+                clickFunction: resetCamera
+            },
+            {
+                name:'Reset All',
+                clickFunction: reset
+            }
+        ]
+
+        this.mainMenuList.innerHTML = '';
+        menu.forEach((m) => {
+            let liElement = document.createElement("li");
+            let aElement = document.createElement("a");
+            aElement.textContent = m.name;
+            aElement.addEventListener("click", m.clickFunction);
+            liElement.appendChild(aElement);
+            this.mainMenuList.appendChild(liElement);
+        })
     }
 
     initPrefs(){
