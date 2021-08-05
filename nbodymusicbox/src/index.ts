@@ -11,13 +11,15 @@ resizeTimer:any,
 zoomTimer:any=null;
 
 let times:number[] = [];
+let loaded:boolean = false;
 
 export let config = {
     fps:0,
     frameCounter:true
 }
 
-export function init(){
+export function init(firebase:any){
+    if(loaded) return;
     console.log("Ready!");
 
     // show header about information
@@ -120,6 +122,8 @@ export function init(){
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(canvasSizeReset,250);
     });
+
+    loaded = true;
 }
 
 function draw(){

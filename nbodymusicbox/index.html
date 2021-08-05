@@ -10,7 +10,6 @@
     <meta property="og:title" content="The n-Body Music Box">
     <meta property="og:description" content="The music of the spheres.">
     <script src="js/lib/require.js"></script>
-    <!-- <script src="js/index.js"></script> -->
 </head>
 <noscript>
     <h1>N-Body Music Box</h1>
@@ -36,13 +35,14 @@
 
     <script>
         requirejs.config({
-            baseUrl:'./js',
             paths:{
-                index: 'index'
+                index: './js/index',
+                '@firebase/app': 'https://www.gstatic.com/firebasejs/8.8.1/firebase-app',
+                '@firebase/firestore': 'https://www.gstatic.com/firebasejs/8.8.1/firebase-firestore'
             }
         });
-        require(['index'],function(index){
-            index.init();
+        require(['index','@firebase/app','@firebase/firestore'],function(index,firebase){
+            index.init(firebase);
         });
     </script>
 </body>

@@ -801,11 +801,14 @@ define("index", ["require", "exports", "UI", "World"], function (require, export
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.zoomTimer = null;
     var times = [];
+    var loaded = false;
     exports.config = {
         fps: 0,
         frameCounter: true
     };
-    function init() {
+    function init(firebase) {
+        if (loaded)
+            return;
         console.log("Ready!");
         if (localStorage.getItem("header") == "false" || localStorage.getItem("header") == null) {
             document.getElementsByTagName("header")[0].classList.remove("closed");
@@ -897,6 +900,7 @@ define("index", ["require", "exports", "UI", "World"], function (require, export
             clearTimeout(exports.resizeTimer);
             exports.resizeTimer = setTimeout(canvasSizeReset, 250);
         });
+        loaded = true;
     }
     exports.init = init;
     function draw() {
